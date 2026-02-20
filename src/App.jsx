@@ -13,6 +13,7 @@ import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Success from './pages/Success';
+import TrackOrder from './pages/TrackOrder';
 
 function App() {
     return (
@@ -30,6 +31,7 @@ function App() {
                                 <Route path="/cart" element={<Cart />} />
                                 <Route path="/checkout" element={<Checkout />} />
                                 <Route path="/success" element={<Success />} />
+                                <Route path="/track-order" element={<TrackOrder />} />
                             </Routes>
                         </main>
                         <Footer />

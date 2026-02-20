@@ -41,7 +41,7 @@ const ProductCard = ({ product }) => {
                     transition={{ duration: 0.5 }}
                     src={product.image}
                     alt={product.title}
-                    className="w-full h-full object-cover mix-blend-multiply dark:mix-blend-normal transform z-0"
+                    className="w-full h-full object-cover transform z-0"
                 />
             </Link>
 
@@ -66,10 +66,11 @@ const ProductCard = ({ product }) => {
                 <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{product.description}</p>
 
                 <div className="flex items-center justify-between pt-2">
-                    <div className="flex items-baseline space-x-2">
-                        <span className="text-xl font-bold text-primary-600 dark:text-primary-400">${product.price}</span>
+                    <div className="flex items-baseline space-x-1">
+                        <span className="text-xl font-bold text-primary-600 dark:text-primary-400">${product.price.toFixed(2)}</span>
+                        {product.unit && <span className="text-xs text-gray-400">/ {product.unit}</span>}
                         {product.discount > 0 && (
-                            <span className="text-sm text-gray-400 line-through decoration-gray-400/50">
+                            <span className="text-sm text-gray-400 line-through decoration-gray-400/50 ml-1">
                                 ${(product.price * (1 + product.discount / 100)).toFixed(2)}
                             </span>
                         )}

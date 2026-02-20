@@ -20,11 +20,11 @@ const ProductDetail = () => {
     const isWishlisted = wishlist.some(item => item.id === product.id);
     const relatedProducts = PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
 
-    // Mock multiple images
+    // Additional product gallery images (food-themed)
     const images = [
         product.image,
-        "https://images.unsplash.com/photo-1524678606372-571d75dc1e8a?w=500&auto=format&fit=crop&q=60",
-        "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=500&auto=format&fit=crop&q=60"
+        "https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=500&auto=format&fit=crop&q=60",
+        "https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=500&auto=format&fit=crop&q=60"
     ];
 
     return (
@@ -93,7 +93,8 @@ const ProductDetail = () => {
                     </div>
 
                     <div className="flex items-end space-x-4">
-                        <span className="text-4xl font-bold text-primary-600">${product.price}</span>
+                        <span className="text-4xl font-bold text-primary-600">${product.price.toFixed(2)}</span>
+                        {product.unit && <span className="text-lg text-gray-400 mb-1">/ {product.unit}</span>}
                         {product.discount > 0 && (
                             <div className="flex flex-col mb-1">
                                 <span className="text-lg text-gray-400 line-through">${(product.price * (1 + product.discount / 100)).toFixed(2)}</span>
@@ -124,16 +125,19 @@ const ProductDetail = () => {
 
                     <div className="grid grid-cols-3 gap-4 pt-6">
                         <div className="flex flex-col items-center text-center p-4 bg-gray-50 dark:bg-dark-card rounded-xl">
-                            <Truck className="w-6 h-6 text-primary-500 mb-2" />
-                            <span className="text-xs font-medium">Free Delivery</span>
+                            <Truck className="w-6 h-6 text-green-500 mb-2" />
+                            <span className="text-xs font-medium">Same-Day Delivery</span>
+                            <span className="text-xs text-gray-400">Order by 2pm</span>
                         </div>
                         <div className="flex flex-col items-center text-center p-4 bg-gray-50 dark:bg-dark-card rounded-xl">
-                            <RefreshCw className="w-6 h-6 text-primary-500 mb-2" />
-                            <span className="text-xs font-medium">30 Days Return</span>
+                            <RefreshCw className="w-6 h-6 text-green-500 mb-2" />
+                            <span className="text-xs font-medium">Freshness Promise</span>
+                            <span className="text-xs text-gray-400">Or full refund</span>
                         </div>
                         <div className="flex flex-col items-center text-center p-4 bg-gray-50 dark:bg-dark-card rounded-xl">
-                            <ShieldCheck className="w-6 h-6 text-primary-500 mb-2" />
-                            <span className="text-xs font-medium">1 Year Warranty</span>
+                            <ShieldCheck className="w-6 h-6 text-green-500 mb-2" />
+                            <span className="text-xs font-medium">Quality Certified</span>
+                            <span className="text-xs text-gray-400">100% Organic</span>
                         </div>
                     </div>
                 </div>

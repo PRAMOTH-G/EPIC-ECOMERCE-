@@ -48,11 +48,11 @@ const Navbar = () => {
 
                     {/* Logo */}
                     <Link to="/" className="flex-shrink-0 flex items-center gap-2 group">
-                        <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center transform group-hover:rotate-6 transition-transform shadow-lg shadow-primary-600/30">
+                        <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center transform group-hover:rotate-6 transition-transform shadow-lg shadow-green-600/30">
                             <Package className="w-6 h-6 text-white" />
                         </div>
-                        <span className="font-display font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-secondary-500">
-                            Electro
+                        <span className="font-display font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-500">
+                            FreshMart
                         </span>
                     </Link>
 
@@ -109,6 +109,7 @@ const Navbar = () => {
                                             <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{currentUser.email}</p>
                                         </div>
                                         <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Your Profile</Link>
+                                        <Link to="/track-order" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">🚚 Track Order</Link>
                                         <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">Orders</Link>
                                         <button
                                             onClick={handleLogout}
@@ -172,7 +173,7 @@ const Navbar = () => {
                             </form>
 
                             <Link to="/" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Home</Link>
-                            <Link to="/products" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Products</Link>
+                            <Link to="/track-order" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">🚚 Track Order</Link>
 
                             {currentUser ? (
                                 <>
