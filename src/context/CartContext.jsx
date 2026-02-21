@@ -8,7 +8,6 @@ export function useCart() {
 
 export function CartProvider({ children }) {
     const [cart, setCart] = useState(() => {
-        // Determine initial state from local storage or empty array
         const savedCart = localStorage.getItem('cart');
         return savedCart ? JSON.parse(savedCart) : [];
     });
@@ -18,14 +17,22 @@ export function CartProvider({ children }) {
         return savedWishlist ? JSON.parse(savedWishlist) : [];
     });
 
+    const [recentlyViewed, setRecentlyViewed] = useState(() => {
+        const saved = localStorage.getItem('recentlyViewed');
+        return saved ? JSON.parse(saved) : [];
+    });
+
     useEffect(() => {
-        // Save to local storage whenever cart changes
         localStorage.setItem('cart', JSON.stringify(cart));
     }, [cart]);
 
     useEffect(() => {
         localStorage.setItem('wishlist', JSON.stringify(wishlist));
     }, [wishlist]);
+
+    useEffect(() => {
+        localStorage.setItem('recentlyViewed', JSON.stringify(recentlyViewed));
+    }, [recentlyViewed]);
 
     const addToCart = (product, quantity = 1) => {
         setCart(prevCart => {
@@ -68,17 +75,26 @@ export function CartProvider({ children }) {
         });
     };
 
+    const addRecentlyViewed = (product) => {
+        setRecentlyViewed(prev => {
+            const filtered = prev.filter(item => item.id !== product.id);
+            return [product, ...filtered].slice(0, 10);
+        });
+    };
+
     const cartTotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
     const cartCount = cart.reduce((count, item) => count + item.quantity, 0);
 
     const value = {
         cart,
         wishlist,
+        recentlyViewed,
         addToCart,
         removeFromCart,
         updateQuantity,
         clearCart,
         toggleWishlist,
+        addRecentlyViewed,
         cartTotal,
         cartCount
     };

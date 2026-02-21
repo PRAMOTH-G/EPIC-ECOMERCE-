@@ -14,6 +14,11 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Success from './pages/Success';
 import TrackOrder from './pages/TrackOrder';
+import Department from './pages/Department';
+import Offers from './pages/Offers';
+import Wishlist from './pages/Wishlist';
+import Orders from './pages/Orders';
+import Admin from './pages/Admin';
 
 function App() {
     return (
@@ -32,6 +37,12 @@ function App() {
                                 <Route path="/checkout" element={<Checkout />} />
                                 <Route path="/success" element={<Success />} />
                                 <Route path="/track-order" element={<TrackOrder />} />
+                                {/* New Routes */}
+                                <Route path="/department/:slug" element={<Department />} />
+                                <Route path="/offers" element={<Offers />} />
+                                <Route path="/wishlist" element={<Wishlist />} />
+                                <Route path="/orders" element={<Orders />} />
+                                <Route path="/admin" element={<Admin />} />
                             </Routes>
                         </main>
                         <Footer />

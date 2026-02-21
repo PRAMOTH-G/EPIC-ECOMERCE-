@@ -4,8 +4,9 @@ import { useCart } from '../context/CartContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     CreditCard, Lock, MapPin, ChevronRight, Eye, EyeOff,
-    CheckCircle, Smartphone, X, Leaf, ShoppingBag
+    CheckCircle, Smartphone, X, Leaf, ShoppingBag, Wallet
 } from 'lucide-react';
+import DeliverySlot from '../components/DeliverySlot';
 
 // ── Helpers ────────────────────────────────────────────────────────
 const formatCardNumber = (value) => {
@@ -151,9 +152,11 @@ const Checkout = () => {
     const [expiry, setExpiry] = useState('');
     const [cvv, setCvv] = useState('');
     const [showCvv, setShowCvv] = useState(false);
-    const [payMethod, setPayMethod] = useState('card'); // 'card' | 'upi'
+    const [payMethod, setPayMethod] = useState('card'); // 'card' | 'upi' | 'cod' | 'wallet'
     const [upiId, setUpiId] = useState('');
+    const [walletBalance] = useState(250.00); // demo wallet balance
     const [payErrors, setPayErrors] = useState({});
+    const [selectedSlot, setSelectedSlot] = useState(null);
 
     // Processing overlay
     const [overlayStatus, setOverlayStatus] = useState(null); // null | 'processing' | 'success' | 'failed'
@@ -196,9 +199,12 @@ const Checkout = () => {
             const expDate = new Date(2000 + parseInt(yy || '0'), parseInt(mm || '0') - 1, 1);
             if (!mm || !yy || expDate < new Date()) errs.expiry = 'Enter a valid future expiry date.';
             if (!cvv || cvv.length < 3) errs.cvv = 'Enter a valid CVV.';
-        } else {
+        } else if (payMethod === 'upi') {
             if (!upiId.trim() || !upiId.includes('@')) errs.upiId = 'Enter a valid UPI ID (e.g. name@upi).';
+        } else if (payMethod === 'wallet') {
+            if (walletBalance < orderTotal) errs.wallet = `Insufficient wallet balance. Available: $${walletBalance.toFixed(2)}`;
         }
+        // COD: no extra validation
         setPayErrors(errs);
         return Object.keys(errs).length === 0;
     };
@@ -230,8 +236,8 @@ const Checkout = () => {
                     payMethod,
                     status: 'confirmed',   // confirmed → packing → out_for_delivery → delivered
                 };
-                const existing = JSON.parse(localStorage.getItem('fm_orders') || '[]');
-                localStorage.setItem('fm_orders', JSON.stringify([newOrder, ...existing]));
+                const existing = JSON.parse(localStorage.getItem('orders') || '[]');
+                localStorage.setItem('orders', JSON.stringify([newOrder, ...existing]));
 
                 setTimeout(() => {
                     clearCart();
@@ -362,6 +368,11 @@ const Checkout = () => {
                                         </div>
                                     </div>
 
+                                    {/* Delivery Slot Picker */}
+                                    <div className="mt-6">
+                                        <DeliverySlot selected={selectedSlot} onSelect={setSelectedSlot} />
+                                    </div>
+
                                     <motion.button
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.97 }}
@@ -391,15 +402,17 @@ const Checkout = () => {
                                         </h2>
 
                                         {/* Method selector */}
-                                        <div className="flex gap-3 mb-6">
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
                                             {[
                                                 { id: 'card', label: '💳 Card', desc: 'Credit / Debit' },
                                                 { id: 'upi', label: '📱 UPI', desc: 'Instant pay' },
+                                                { id: 'cod', label: '💵 COD', desc: 'Pay at door' },
+                                                { id: 'wallet', label: '👛 Wallet', desc: `$${walletBalance.toFixed(0)} avail.` },
                                             ].map((m) => (
                                                 <button
                                                     key={m.id}
                                                     onClick={() => setPayMethod(m.id)}
-                                                    className={`flex-1 py-3 px-4 rounded-xl border-2 text-sm font-semibold transition-all
+                                                    className={`py-3 px-3 rounded-xl border-2 text-sm font-semibold transition-all text-center
                                                         ${payMethod === m.id
                                                             ? 'border-green-600 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
                                                             : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'}`}
@@ -548,6 +561,46 @@ const Checkout = () => {
                                                 <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-400">
                                                     <strong>🧪 Demo mode:</strong> Enter any UPI ID like <strong>demo@upi</strong> to simulate payment.
                                                 </div>
+                                            </div>
+                                        )}
+
+                                        {/* ── COD form ──────────────────── */}
+                                        {payMethod === 'cod' && (
+                                            <div className="space-y-4">
+                                                <div className="text-center py-8 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-700">
+                                                    <span className="text-5xl">💵</span>
+                                                    <p className="text-base font-bold text-amber-800 dark:text-amber-300 mt-3">Cash on Delivery</p>
+                                                    <p className="text-sm text-amber-600 dark:text-amber-400 mt-1 max-w-xs mx-auto">Pay in cash when your order arrives. Please keep exact change ready.</p>
+                                                </div>
+                                                <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800">
+                                                    <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-green-800 dark:text-green-300">No online payment required</p>
+                                                        <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">Pay ${orderTotal.toFixed(2)} in cash to our delivery partner upon arrival.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* ── Wallet form ──────────────────── */}
+                                        {payMethod === 'wallet' && (
+                                            <div className="space-y-4">
+                                                <div className="text-center py-6 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-200 dark:border-violet-700">
+                                                    <Wallet className="w-10 h-10 text-violet-600 mx-auto mb-3" />
+                                                    <p className="text-sm font-semibold text-violet-800 dark:text-violet-300">FreshMart Wallet</p>
+                                                    <p className="text-2xl font-bold text-violet-700 dark:text-violet-300 mt-1">${walletBalance.toFixed(2)}</p>
+                                                    <p className="text-xs text-violet-500 dark:text-violet-400">Available Balance</p>
+                                                </div>
+                                                {walletBalance >= orderTotal ? (
+                                                    <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800">
+                                                        <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
+                                                        <p className="text-sm text-green-700 dark:text-green-300">Sufficient balance. ${orderTotal.toFixed(2)} will be deducted from your wallet.</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800">
+                                                        <p className="text-sm text-red-600 dark:text-red-400">{payErrors.wallet || 'Insufficient balance.'}</p>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>

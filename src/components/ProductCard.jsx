@@ -25,6 +25,20 @@ const ProductCard = ({ product }) => {
                 </div>
             )}
 
+            {/* Organic Badge */}
+            {product.isOrganic && !product.discount && (
+                <div className="absolute top-4 left-4 z-20 bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+                    🌿 Organic
+                </div>
+            )}
+
+            {/* Featured Star */}
+            {product.isFeatured && (
+                <div className="absolute top-4 right-14 z-20">
+                    <span className="text-amber-400 text-sm">⭐</span>
+                </div>
+            )}
+
             {/* Wishlist Button */}
             <button
                 onClick={(e) => { e.preventDefault(); toggleWishlist(product); }}
@@ -51,11 +65,17 @@ const ProductCard = ({ product }) => {
                     <div className="flex items-center space-x-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">
                         <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
                         <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{product.rating}</span>
+                        {product.reviews && <span className="text-[10px] text-gray-400">({product.reviews})</span>}
                     </div>
                     <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${product.stock > 0 ? 'border-green-200 text-green-700 dark:border-green-900 dark:text-green-400' : 'border-red-200 text-red-700'}`}>
                         {product.stock > 0 ? 'In Stock' : 'Sold Out'}
                     </span>
                 </div>
+                {product.category && (
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+                        {product.category}
+                    </span>
+                )}
 
                 <Link to={`/product/${product.id}`}>
                     <h3 className="font-semibold text-gray-900 dark:text-white line-clamp-2 hover:text-primary-500 transition-colors text-lg leading-snug">
