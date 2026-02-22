@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Sparkles, TrendingUp, Clock } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'framer-motion';
+import {
+    ArrowRight, Sparkles, TrendingUp, Clock, ShoppingBag,
+    ChevronRight, Zap, Star, Gift, Truck, Shield, RotateCcw, Flame
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import Button from '../components/Button';
@@ -9,6 +12,17 @@ import { ComboDealsSection } from '../components/ComboDeal';
 import { PRODUCTS, DEPARTMENTS } from '../lib/data';
 import { useCart } from '../context/CartContext';
 
+// ── Stagger container variants ──────────────────────
+const containerVariants = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.06 } },
+};
+const itemVariants = {
+    hidden: { opacity: 0, y: 32 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] } },
+};
+
+// ── Dept gradient map ────────────────────────────────
 const DEPT_GRADIENTS = {
     green: 'from-green-400 to-emerald-500',
     red: 'from-red-400 to-rose-500',
@@ -27,311 +41,562 @@ const DEPT_GRADIENTS = {
     violet: 'from-violet-400 to-purple-500',
 };
 
+// ── Animated Counter ─────────────────────────────────
+const AnimCounter = ({ target, suffix = '' }) => {
+    const [count, setCount] = useState(0);
+    const ref = useRef(null);
+    const [started, setStarted] = useState(false);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => { if (entry.isIntersecting && !started) setStarted(true); },
+            { threshold: 0.5 }
+        );
+        if (ref.current) observer.observe(ref.current);
+        return () => observer.disconnect();
+    }, [started]);
+
+    useEffect(() => {
+        if (!started) return;
+        let raf;
+        const duration = 1400;
+        const start = performance.now();
+        const animate = (now) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const ease = 1 - Math.pow(1 - progress, 4);
+            setCount(Math.round(ease * target));
+            if (progress < 1) raf = requestAnimationFrame(animate);
+        };
+        raf = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(raf);
+    }, [started, target]);
+
+    return <span ref={ref}>{count}{suffix}</span>;
+};
+
+// ── Floating badge ───────────────────────────────────
+const FloatingBadge = ({ className, children, delay = 0 }) => (
+    <motion.div
+        className={`absolute z-20 bg-white/90 dark:bg-dark-card/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/60 dark:border-white/10 px-4 py-3 ${className}`}
+        animate={{ y: [0, -12, 0], rotate: [0, 1.5, 0] }}
+        transition={{ repeat: Infinity, duration: 5 + delay, ease: 'easeInOut', delay }}
+    >
+        {children}
+    </motion.div>
+);
+
+// ── Section heading ──────────────────────────────────
+const SectionHeading = ({ title, subtitle, link, linkLabel = 'View All' }) => (
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3 mb-8">
+        <div>
+            <h2 className="text-3xl md:text-4xl font-black font-display text-gray-900 dark:text-white tracking-tight">
+                {title}
+            </h2>
+            <div className="flex items-center gap-3 mt-2">
+                <div className="h-1 w-12 bg-green-500 rounded-full" />
+                <div className="h-1 w-4 bg-green-300 rounded-full" />
+                <div className="h-1 w-2 bg-green-200 rounded-full" />
+            </div>
+            {subtitle && <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">{subtitle}</p>}
+        </div>
+        {link && (
+            <Link
+                to={link}
+                className="group inline-flex items-center gap-1.5 text-sm font-bold text-green-600 dark:text-green-400 hover:text-green-700 transition-colors whitespace-nowrap"
+            >
+                {linkLabel}
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+        )}
+    </div>
+);
+
+// ════════════════════════════════════════════════════
 const Home = () => {
     const [selectedCategory, setSelectedCategory] = useState('All');
     const { recentlyViewed } = useCart();
+    const heroRef = useRef(null);
+    const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+    const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '25%']);
+    const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
 
     const featuredProducts = selectedCategory === 'All'
         ? PRODUCTS.filter(p => p.isFeatured)
         : PRODUCTS.filter(p => p.category === selectedCategory);
-
     const displayProducts = featuredProducts.length > 0 ? featuredProducts : PRODUCTS.filter(p => p.category === selectedCategory);
+
+    // Top picks for secondary section
+    const newArrivals = PRODUCTS.filter(p => p.id > 60).slice(0, 4);
+    const bestSellers = PRODUCTS.filter(p => p.reviews > 300).slice(0, 4);
 
     return (
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="min-h-screen pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-20"
+            className="min-h-screen"
         >
+            {/* ── HERO ── */}
+            <section
+                ref={heroRef}
+                className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-dark-bg dark:via-dark-bg dark:to-dark-bg min-h-[680px] flex items-center"
+            >
+                {/* Parallax BG blobs */}
+                <motion.div style={{ y: heroY }} className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-[-100px] right-[-100px] w-[600px] h-[600px] bg-green-300/20 rounded-full blur-[120px] animate-pulse-slow" />
+                    <div className="absolute bottom-[-80px] left-[-80px] w-[500px] h-[500px] bg-emerald-200/30 rounded-full blur-[100px] animate-pulse-slow animation-delay-2000" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-green-100/40 rounded-full blur-[150px]" />
+                </motion.div>
 
-            {/* Hero Section */}
-            <section className="relative rounded-[2.5rem] overflow-hidden bg-primary-50 dark:bg-dark-bg text-gray-900 dark:text-white min-h-[600px] flex items-center shadow-2xl shadow-primary-500/10 mt-8">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-green-200/60 via-emerald-50 to-white dark:from-primary-900/20 dark:via-dark-bg dark:to-dark-bg"></div>
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-green-300/30 rounded-full blur-[100px] animate-pulse-slow"></div>
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-200/50 rounded-full blur-[100px]"></div>
+                {/* Morphing decorative shape */}
+                <div className="absolute top-20 right-20 w-64 h-64 bg-gradient-to-br from-green-200/30 to-emerald-300/20 animate-morph hidden lg:block" />
 
-                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 p-8 lg:p-20 items-center">
-                    <motion.div
-                        initial={{ opacity: 0, x: -50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.8, ease: 'easeOut' }}
-                        className="space-y-8"
-                    >
+                <motion.div style={{ opacity: heroOpacity }} className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+
+                        {/* Left text */}
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/60 dark:bg-white/5 backdrop-blur-md border border-green-100 dark:border-white/10 shadow-sm"
+                            initial="hidden"
+                            animate="visible"
+                            variants={containerVariants}
+                            className="space-y-8"
                         >
-                            <Sparkles className="w-4 h-4 text-green-600 dark:text-green-400" />
-                            <span className="text-sm font-medium text-green-800 dark:text-green-100 tracking-wide">Your One-Stop Departmental Store</span>
+                            <motion.div variants={itemVariants}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 shadow-sm"
+                            >
+                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                                <span className="text-xs font-bold text-green-800 dark:text-green-300 tracking-widest uppercase">
+                                    India's #1 Departmental Store
+                                </span>
+                            </motion.div>
+
+                            <motion.h1 variants={itemVariants} className="text-5xl lg:text-7xl font-black font-display leading-[1.05] tracking-tight text-gray-900 dark:text-white">
+                                Everything
+                                <br />
+                                <span className="relative inline-block">
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 via-emerald-400 to-lime-500 animate-gradient-x">
+                                        You Need
+                                    </span>
+                                    {/* Underline squiggle */}
+                                    <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none">
+                                        <path d="M2 8 Q75 2 150 8 Q225 14 298 8" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" fill="none" opacity="0.6" />
+                                    </svg>
+                                </span>
+                                <br />
+                                Delivered
+                            </motion.h1>
+
+                            <motion.p variants={itemVariants} className="text-lg text-gray-600 dark:text-gray-400 max-w-lg leading-relaxed">
+                                15 departments, 70+ products — farm fresh produce to pet care, all delivered <strong className="text-green-600">same-day</strong> to your door.
+                            </motion.p>
+
+                            <motion.div variants={itemVariants} className="flex flex-wrap gap-2">
+                                {['🥦 Farm Fresh', '🚚 Same-Day', '🏪 15 Depts', '💯 Best Price', '❄️ Cold-Chain'].map(tag => (
+                                    <span key={tag} className="px-3 py-1.5 rounded-full bg-white dark:bg-dark-card text-green-800 dark:text-green-300 text-xs font-semibold border border-green-100 dark:border-green-800 shadow-sm hover:shadow-md hover:border-green-300 transition-all cursor-default">
+                                        {tag}
+                                    </span>
+                                ))}
+                            </motion.div>
+
+                            <motion.div variants={itemVariants} className="flex flex-wrap gap-4">
+                                <Link to="/offers">
+                                    <motion.button
+                                        whileHover={{ scale: 1.04 }}
+                                        whileTap={{ scale: 0.97 }}
+                                        className="flex items-center gap-2 px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl shadow-xl shadow-green-500/30 transition-all btn-liquid neon-green text-base"
+                                    >
+                                        <ShoppingBag className="w-5 h-5" />
+                                        Shop Now
+                                        <ArrowRight className="w-5 h-5" />
+                                    </motion.button>
+                                </Link>
+                                <Link to="/department/fruits-vegetables">
+                                    <motion.button
+                                        whileHover={{ scale: 1.04 }}
+                                        whileTap={{ scale: 0.97 }}
+                                        className="flex items-center gap-2 px-8 py-4 bg-white dark:bg-dark-card text-green-700 dark:text-green-400 font-bold rounded-2xl shadow-md border border-green-200 dark:border-green-800 hover:border-green-400 transition-all text-base"
+                                    >
+                                        🥬 Fresh Picks
+                                    </motion.button>
+                                </Link>
+                            </motion.div>
                         </motion.div>
 
-                        <h1 className="text-5xl lg:text-7xl font-bold font-display leading-tight tracking-tight text-gray-900 dark:text-white">
-                            Everything You<br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 via-emerald-400 to-lime-500 animate-gradient-x">Need, Delivered</span>
-                        </h1>
-
-                        <p className="text-xl text-gray-600 dark:text-gray-400 max-w-lg leading-relaxed">
-                            15 departments, 70+ products — from fresh farm produce to pet care, all delivered same-day to your door.
-                        </p>
-
-                        <div className="flex flex-wrap gap-3">
-                            {['🥦 Farm Fresh', '🚚 Same-Day', '🏪 15 Departments', '💯 Best Prices'].map((tag) => (
-                                <span key={tag} className="px-4 py-1.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-sm font-medium border border-green-200 dark:border-green-800">
-                                    {tag}
-                                </span>
-                            ))}
-                        </div>
-
-                        <div className="flex flex-wrap gap-4 pt-2">
-                            <Link to="/offers">
-                                <Button variant="primary" size="lg" className="shadow-neon hover:shadow-neon-hover px-8 text-lg font-bold text-white bg-green-600 hover:bg-green-700">
-                                    Shop Now <ArrowRight className="w-5 h-5 ml-2 inline" />
-                                </Button>
-                            </Link>
-                            <Link to="/offers">
-                                <Button variant="outline" size="lg" className="border-green-300 dark:border-white/20 text-green-700 dark:text-white hover:bg-green-50 dark:hover:bg-white/10 px-8 text-lg">
-                                    🔥 View Offers
-                                </Button>
-                            </Link>
-                        </div>
-                    </motion.div>
-
-                    <motion.div
-                        className="relative hidden lg:block h-full"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                    >
-                        <div className="relative w-full h-[500px] flex items-center justify-center">
-                            <motion.img
-                                src="https://images.unsplash.com/photo-1610348725531-843dff563e2c?w=900&auto=format&fit=crop&q=80"
-                                alt="Departmental store products"
-                                className="w-full h-[460px] object-cover rounded-3xl drop-shadow-2xl z-20 relative"
-                                animate={{ y: [-10, 10] }}
-                                transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', repeatType: 'mirror' }}
-                            />
+                        {/* Right image */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.85, x: 60 }}
+                            animate={{ opacity: 1, scale: 1, x: 0 }}
+                            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+                            className="relative hidden lg:flex items-center justify-center h-[520px]"
+                        >
+                            {/* Main image */}
                             <motion.div
-                                className="absolute top-10 right-0 p-4 bg-white/80 dark:bg-white/10 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/20 shadow-glass z-30"
-                                animate={{ y: [15, -15], rotate: [0, 4, 0] }}
-                                transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut', delay: 1 }}
+                                animate={{ y: [-8, 8] }}
+                                transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut', repeatType: 'mirror' }}
+                                className="relative w-[420px] h-[420px] rounded-[3rem] overflow-hidden shadow-2xl shadow-green-500/20 z-10"
                             >
-                                <span className="text-green-600 dark:text-white font-bold text-2xl">15</span>
-                                <p className="text-xs text-gray-600 dark:text-gray-300">Departments</p>
+                                <img
+                                    src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&auto=format&fit=crop&q=80"
+                                    alt="Fresh grocery basket"
+                                    className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                             </motion.div>
+
+                            {/* Floating badges */}
+                            <FloatingBadge className="top-6 -left-6" delay={0}>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-2xl">🌿</span>
+                                    <div>
+                                        <p className="text-xs font-bold text-gray-900 dark:text-white">100% Organic</p>
+                                        <p className="text-[10px] text-gray-500">Certified fresh</p>
+                                    </div>
+                                </div>
+                            </FloatingBadge>
+
+                            <FloatingBadge className="bottom-16 -left-8" delay={1.5}>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 bg-green-100 rounded-xl flex items-center justify-center">
+                                        <Truck className="w-4 h-4 text-green-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-bold text-gray-900 dark:text-white">Same Day</p>
+                                        <p className="text-[10px] text-green-600 font-semibold">Free delivery</p>
+                                    </div>
+                                </div>
+                            </FloatingBadge>
+
+                            <FloatingBadge className="top-10 -right-6" delay={0.8}>
+                                <div className="text-center">
+                                    <p className="text-2xl font-black text-green-600">
+                                        <AnimCounter target={70} suffix="+" />
+                                    </p>
+                                    <p className="text-[10px] text-gray-500 font-medium">Products</p>
+                                </div>
+                            </FloatingBadge>
+
+                            <FloatingBadge className="bottom-6 -right-4" delay={2}>
+                                <div className="flex items-center gap-1.5">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                    ))}
+                                    <span className="text-xs font-bold text-gray-700 dark:text-white ml-1">4.9</span>
+                                </div>
+                            </FloatingBadge>
+
+                            {/* Spinning ring */}
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div className="w-[460px] h-[460px] border-2 border-dashed border-green-200/40 rounded-full animate-spin-slow" />
+                            </div>
+                        </motion.div>
+                    </div>
+                </motion.div>
+
+                {/* Scroll indicator */}
+                <motion.div
+                    animate={{ y: [0, 8, 0] }}
+                    transition={{ repeat: Infinity, duration: 2 }}
+                    className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-gray-400"
+                >
+                    <div className="w-px h-10 bg-gradient-to-b from-transparent to-green-400" />
+                    <span className="text-[10px] tracking-widest uppercase font-medium">Scroll</span>
+                </motion.div>
+            </section>
+
+            {/* ── TRUST BADGES ── */}
+            <section className="bg-white dark:bg-dark-card border-b border-gray-100 dark:border-gray-800">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                    <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true }}
+                        className="grid grid-cols-2 md:grid-cols-4 gap-3"
+                    >
+                        {[
+                            { icon: <Truck className="w-5 h-5 text-green-600" />, title: 'Same-Day Delivery', desc: 'Order by 2 PM' },
+                            { icon: <Shield className="w-5 h-5 text-green-600" />, title: '100% Fresh Guarantee', desc: 'Or full refund' },
+                            { icon: <RotateCcw className="w-5 h-5 text-green-600" />, title: 'Easy Returns', desc: '48-hr hassle-free' },
+                            { icon: <Zap className="w-5 h-5 text-green-600" />, title: 'Multiple Payments', desc: 'UPI, Card, COD' },
+                        ].map((item, idx) => (
                             <motion.div
-                                className="absolute bottom-12 left-0 p-3 flex items-center gap-3 bg-white/80 dark:bg-dark-card/80 backdrop-blur-md rounded-2xl border border-white/40 dark:border-white/10 shadow-glass z-30"
-                                animate={{ y: [-10, 10], x: [-5, 5] }}
-                                transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut', delay: 0.5 }}
+                                key={idx}
+                                variants={itemVariants}
+                                className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/20 transition-colors"
                             >
-                                <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-500/20 flex items-center justify-center">
-                                    <Sparkles className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                <div className="w-9 h-9 rounded-xl bg-white dark:bg-dark-bg flex items-center justify-center shadow-sm flex-shrink-0">
+                                    {item.icon}
                                 </div>
                                 <div>
-                                    <p className="text-gray-900 dark:text-white font-bold text-sm">70+ Products</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Across all depts</p>
+                                    <p className="text-xs font-bold text-gray-900 dark:text-white">{item.title}</p>
+                                    <p className="text-[10px] text-gray-500 dark:text-gray-400">{item.desc}</p>
                                 </div>
                             </motion.div>
-                        </div>
+                        ))}
                     </motion.div>
                 </div>
             </section>
 
-            {/* Trust Badges */}
-            <section>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    {[
-                        { emoji: '🏪', title: '15 Departments', desc: 'Everything under one roof' },
-                        { emoji: '⚡', title: 'Same-Day Delivery', desc: 'Order by 2pm, delivered today' },
-                        { emoji: '❄️', title: 'Cold-Chain Fresh', desc: 'Temperature-controlled throughout' },
-                        { emoji: '💳', title: 'UPI / Card / COD', desc: 'Multiple payment options' },
-                    ].map((item, idx) => (
-                        <motion.div
-                            key={idx}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.1 }}
-                            className="flex flex-col items-center text-center p-6 bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-shadow"
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20 py-16 pb-20">
+
+                {/* ── OFFER BANNER ── */}
+                <OfferBanner />
+
+                {/* ── SHOP BY DEPARTMENT ── */}
+                <section>
+                    <SectionHeading
+                        title="Shop by Department"
+                        subtitle="Explore our 15 carefully curated categories"
+                        link="/"
+                        linkLabel="All Departments"
+                    />
+
+                    {/* Category filter pills */}
+                    <div className="flex gap-2.5 overflow-x-auto pb-3 scrollbar-hide mb-6">
+                        <motion.button
+                            whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}
+                            onClick={() => setSelectedCategory('All')}
+                            className={`flex-none px-5 py-2.5 rounded-2xl flex items-center gap-2 text-sm font-bold transition-all border ${selectedCategory === 'All'
+                                ? 'bg-green-600 border-green-500 text-white shadow-lg shadow-green-500/30'
+                                : 'bg-white dark:bg-dark-card border-gray-100 dark:border-gray-800 text-gray-500 hover:border-green-200'
+                                }`}
                         >
-                            <span className="text-4xl mb-3">{item.emoji}</span>
-                            <h3 className="font-bold text-gray-900 dark:text-white text-sm mb-1">{item.title}</h3>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">{item.desc}</p>
-                        </motion.div>
-                    ))}
-                </div>
-            </section>
-
-            {/* Offers Banner */}
-            <OfferBanner />
-
-            {/* Departments Carousel */}
-            <section>
-                <div className="flex justify-between items-end mb-8">
-                    <div>
-                        <h2 className="text-4xl font-bold font-display text-gray-900 dark:text-white">Shop by Department</h2>
-                        <div className="h-1 w-20 bg-green-500 mt-2 rounded-full" />
-                    </div>
-                    <Link to="/" className="text-sm font-semibold text-green-600 dark:text-green-400 hover:underline flex items-center gap-1">
-                        All Departments <ArrowRight className="w-4 h-4" />
-                    </Link>
-                </div>
-
-                {/* Category filter for product grid */}
-                <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
-                    <motion.button
-                        whileHover={{ y: -3 }} whileTap={{ scale: 0.96 }}
-                        onClick={() => setSelectedCategory('All')}
-                        className={`flex-none px-5 py-2.5 rounded-2xl flex items-center gap-2 text-sm font-semibold transition-all border ${selectedCategory === 'All' ? 'bg-green-600 border-green-500 text-white shadow-lg' : 'bg-white dark:bg-dark-card border-gray-100 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:border-green-200'}`}
-                    >
-                        <TrendingUp className="w-4 h-4" /> All Items
-                    </motion.button>
-                    {DEPARTMENTS.map(dept => {
-                        const isActive = selectedCategory === dept.name;
-                        const grad = DEPT_GRADIENTS[dept.color] || 'from-gray-400 to-gray-500';
-                        return (
-                            <motion.button
-                                key={dept.id}
-                                whileHover={{ y: -3 }} whileTap={{ scale: 0.96 }}
-                                onClick={() => setSelectedCategory(dept.name)}
-                                className={`flex-none flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all border ${isActive ? 'bg-green-600 border-green-500 text-white shadow-lg' : 'bg-white dark:bg-dark-card border-gray-100 dark:border-gray-800 hover:border-green-200 dark:hover:border-green-800 text-gray-600 dark:text-gray-400'}`}
-                            >
-                                <span className="text-base">{dept.icon}</span>
-                                {dept.name}
-                            </motion.button>
-                        );
-                    })}
-                </div>
-
-                {/* Department cards grid (when All selected) */}
-                {selectedCategory === 'All' && (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
-                        {DEPARTMENTS.map((dept, idx) => {
-                            const grad = DEPT_GRADIENTS[dept.color] || 'from-gray-400 to-gray-500';
+                            <TrendingUp className="w-4 h-4" /> All Items
+                        </motion.button>
+                        {DEPARTMENTS.map(dept => {
+                            const isActive = selectedCategory === dept.name;
                             return (
-                                <motion.div
+                                <motion.button
                                     key={dept.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: idx * 0.04 }}
+                                    whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}
+                                    onClick={() => setSelectedCategory(dept.name)}
+                                    className={`flex-none flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all border ${isActive
+                                        ? 'bg-green-600 border-green-500 text-white shadow-lg shadow-green-500/30'
+                                        : 'bg-white dark:bg-dark-card border-gray-100 dark:border-gray-800 text-gray-500 hover:border-green-200 dark:hover:border-green-800'
+                                        }`}
                                 >
-                                    <Link
-                                        to={`/department/${dept.slug}`}
-                                        className="group flex flex-col items-center text-center p-5 rounded-2xl bg-white dark:bg-dark-card border border-gray-100 dark:border-gray-800 hover:shadow-lg hover:border-green-200 transition-all duration-300"
-                                    >
-                                        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center text-3xl mb-3 shadow-md group-hover:scale-110 transition-transform`}>
-                                            {dept.icon}
-                                        </div>
-                                        <span className="font-semibold text-xs text-gray-700 dark:text-gray-300 group-hover:text-green-600 leading-tight">{dept.name}</span>
-                                    </Link>
-                                </motion.div>
+                                    <span>{dept.icon}</span>
+                                    <span className="whitespace-nowrap">{dept.name}</span>
+                                </motion.button>
                             );
                         })}
                     </div>
-                )}
-            </section>
 
-            {/* Featured Products */}
-            <section>
-                <div className="mb-10">
-                    <h2 className="text-4xl font-bold font-display text-gray-900 dark:text-white">
-                        {selectedCategory === 'All' ? '⭐ Featured Picks' : selectedCategory}
-                    </h2>
-                    <div className="h-1 w-20 bg-emerald-500 mt-2 rounded-full" />
+                    {/* Department cards grid */}
                     {selectedCategory === 'All' && (
-                        <p className="text-gray-500 dark:text-gray-400 mt-3 text-base">Curated bestsellers from across all departments</p>
+                        <motion.div
+                            variants={containerVariants}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, margin: '-60px' }}
+                            className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3"
+                        >
+                            {DEPARTMENTS.map((dept) => {
+                                const grad = DEPT_GRADIENTS[dept.color] || 'from-gray-400 to-gray-500';
+                                return (
+                                    <motion.div key={dept.id} variants={itemVariants}>
+                                        <Link
+                                            to={`/department/${dept.slug}`}
+                                            className="group flex flex-col items-center text-center p-4 rounded-2xl bg-white dark:bg-dark-card border border-gray-100 dark:border-gray-800 hover:shadow-lg hover:border-green-200 hover:-translate-y-1 transition-all duration-300"
+                                        >
+                                            <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center text-2xl mb-2 shadow-md group-hover:scale-115 transition-transform duration-300`}>
+                                                {dept.icon}
+                                            </div>
+                                            <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-green-600 leading-tight">
+                                                {dept.name}
+                                            </span>
+                                        </Link>
+                                    </motion.div>
+                                );
+                            })}
+                        </motion.div>
                     )}
-                </div>
+                </section>
 
-                <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    <AnimatePresence mode="popLayout">
-                        {displayProducts.map(product => (
-                            <ProductCard key={product.id} product={product} />
-                        ))}
-                    </AnimatePresence>
-                </motion.div>
-
-                {displayProducts.length === 0 && (
-                    <div className="text-center py-20 text-gray-400">
-                        <p className="text-5xl mb-4">🛒</p>
-                        <p className="text-lg">No products found in this category.</p>
-                    </div>
-                )}
-
-                {selectedCategory !== 'All' && (
-                    <div className="mt-8 text-center">
-                        <Link to={`/department/${DEPARTMENTS.find(d => d.name === selectedCategory)?.slug || ''}`}>
-                            <Button variant="outline" className="px-8 rounded-xl flex items-center gap-2 mx-auto">
-                                Browse All {selectedCategory} <ArrowRight className="w-4 h-4" />
-                            </Button>
-                        </Link>
-                    </div>
-                )}
-            </section>
-
-            {/* Combo Deals */}
-            <ComboDealsSection />
-
-            {/* Recently Viewed */}
-            {recentlyViewed.length > 0 && (
+                {/* ── FEATURED / CATEGORY PRODUCTS ── */}
                 <section>
-                    <div className="flex items-center gap-3 mb-8">
-                        <Clock className="w-6 h-6 text-gray-400" />
-                        <h2 className="text-3xl font-bold font-display text-gray-900 dark:text-white">Recently Viewed</h2>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-                        {recentlyViewed.slice(0, 5).map(product => (
+                    <SectionHeading
+                        title={selectedCategory === 'All' ? '⭐ Featured Picks' : selectedCategory}
+                        subtitle={selectedCategory === 'All' ? 'Curated bestsellers from across all departments' : undefined}
+                        link={selectedCategory !== 'All' ? `/department/${DEPARTMENTS.find(d => d.name === selectedCategory)?.slug || ''}` : '/offers'}
+                        linkLabel={selectedCategory !== 'All' ? `Browse All ${selectedCategory}` : 'View All'}
+                    />
+                    <motion.div layout className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-5">
+                        <AnimatePresence mode="popLayout">
+                            {displayProducts.map(product => (
+                                <ProductCard key={product.id} product={product} />
+                            ))}
+                        </AnimatePresence>
+                    </motion.div>
+                    {displayProducts.length === 0 && (
+                        <div className="text-center py-20">
+                            <p className="text-5xl mb-4">🛒</p>
+                            <p className="text-lg text-gray-400">No products found in this category.</p>
+                        </div>
+                    )}
+                </section>
+
+                {/* ── STATS STRIP ── */}
+                <section className="rounded-3xl bg-gradient-to-br from-green-600 to-emerald-700 text-white p-10 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.12),transparent)]" />
+                    <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/5 rounded-full" />
+                    <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-black/10 rounded-full" />
+                    <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true }}
+                        className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
+                    >
+                        {[
+                            { value: 70, suffix: '+', label: 'Products' },
+                            { value: 15, suffix: '', label: 'Departments' },
+                            { value: 50000, suffix: '+', label: 'Happy Customers' },
+                            { value: 99, suffix: '%', label: 'Satisfaction Rate' },
+                        ].map((stat, idx) => (
+                            <motion.div key={idx} variants={itemVariants}>
+                                <p className="text-4xl md:text-5xl font-black tracking-tight">
+                                    <AnimCounter target={stat.value} suffix={stat.suffix} />
+                                </p>
+                                <p className="text-green-100 text-sm font-medium mt-1">{stat.label}</p>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </section>
+
+                {/* ── COMBO DEALS ── */}
+                <ComboDealsSection />
+
+                {/* ── BEST SELLERS ── */}
+                <section>
+                    <SectionHeading
+                        title="🔥 Best Sellers"
+                        subtitle="Most loved products by our customers"
+                        link="/offers"
+                        linkLabel="See All Deals"
+                    />
+                    <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-5">
+                        {bestSellers.map(product => (
                             <ProductCard key={product.id} product={product} />
                         ))}
                     </div>
                 </section>
-            )}
 
-            {/* Seasonal Banner */}
-            <section className="rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-green-800 to-emerald-900 text-white py-24 px-8 relative shadow-2xl">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600&auto=format&fit=crop&q=80')] bg-cover bg-center opacity-30 mix-blend-overlay"></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                <div className="relative z-10 flex flex-col items-center justify-center text-center max-w-3xl mx-auto space-y-8">
-                    <span className="text-4xl">🌿</span>
-                    <motion.h2
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        className="text-5xl md:text-6xl font-bold font-display tracking-tight"
-                    >
-                        Seasonal Specials
-                    </motion.h2>
-                    <p className="text-green-100 text-xl max-w-2xl">
-                        Enjoy up to 30% off on handpicked seasonal produce and essentials every week.
-                    </p>
-                    <Link to="/offers">
-                        <Button variant="primary" size="lg" className="rounded-full px-10 py-4 text-lg bg-white text-green-800 hover:bg-green-100 shadow-xl hover:scale-105 font-bold">
-                            Shop the Season
-                        </Button>
-                    </Link>
-                </div>
-            </section>
-
-            {/* Newsletter Section */}
-            <section className="bg-white dark:bg-dark-card rounded-3xl p-12 border border-gray-100 dark:border-gray-800 shadow-sm">
-                <div className="max-w-2xl mx-auto text-center space-y-6">
-                    <span className="text-3xl">📬</span>
-                    <h2 className="text-3xl font-bold font-display text-gray-900 dark:text-white">Fresh Deals in Your Inbox</h2>
-                    <p className="text-gray-500 dark:text-gray-400">Subscribe for weekly deals, seasonal recipes, and exclusive discounts across all departments.</p>
-                    <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" onSubmit={(e) => e.preventDefault()}>
-                        <input
-                            type="email"
-                            placeholder="your@email.com"
-                            className="flex-1 px-5 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+                {/* ── RECENTLY VIEWED ── */}
+                {recentlyViewed.length > 0 && (
+                    <section>
+                        <SectionHeading
+                            title="Recently Viewed"
+                            link="/cart"
+                            linkLabel="Go to Cart"
                         />
-                        <Button variant="primary" className="bg-green-600 hover:bg-green-700 text-white px-6 rounded-xl whitespace-nowrap" onClick={(e) => e.preventDefault()}>
-                            Subscribe
-                        </Button>
-                    </form>
-                    <p className="text-xs text-gray-400">No spam. Unsubscribe anytime.</p>
-                </div>
-            </section>
+                        <div className="flex items-center gap-2 mb-4">
+                            <Clock className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm text-gray-400">Your browsing history</span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+                            {recentlyViewed.slice(0, 5).map(product => (
+                                <ProductCard key={product.id} product={product} />
+                            ))}
+                        </div>
+                    </section>
+                )}
 
+                {/* ── SEASONAL BANNER ── */}
+                <section className="relative rounded-[2.5rem] overflow-hidden min-h-[380px] flex items-center">
+                    <img
+                        src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=1600&auto=format&fit=crop&q=80"
+                        alt="Fresh seasonal produce"
+                        className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-green-900/90 via-green-800/75 to-transparent" />
+
+                    <div className="relative z-10 p-10 lg:p-16 max-w-xl">
+                        <motion.div
+                            initial={{ opacity: 0, x: -40 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                            viewport={{ once: true }}
+                            className="space-y-6"
+                        >
+                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-bold border border-white/30">
+                                <Flame className="w-4 h-4 text-orange-300" /> Seasonal Specials
+                            </span>
+                            <h2 className="text-4xl lg:text-5xl font-black text-white leading-tight">
+                                Up to 30% Off<br />
+                                <span className="text-green-300">Fresh Produce</span>
+                            </h2>
+                            <p className="text-green-100 text-lg">
+                                Handpicked seasonal fruits & vegetables. Freshest quality, biggest savings.
+                            </p>
+                            <div className="flex flex-wrap gap-3">
+                                <Link to="/offers">
+                                    <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="flex items-center gap-2 px-8 py-3.5 bg-white text-green-800 font-black rounded-2xl shadow-xl hover:bg-green-50 transition-all"
+                                    >
+                                        <Gift className="w-5 h-5" /> Shop the Season
+                                    </motion.button>
+                                </Link>
+                                <Link to="/department/fruits-vegetables">
+                                    <motion.button
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="flex items-center gap-2 px-6 py-3.5 bg-transparent text-white font-bold rounded-2xl border-2 border-white/50 hover:border-white hover:bg-white/10 transition-all"
+                                    >
+                                        View Produce <ArrowRight className="w-4 h-4" />
+                                    </motion.button>
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
+                </section>
+
+                {/* ── NEWSLETTER ── */}
+                <section>
+                    <motion.div
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                        className="bg-white dark:bg-dark-card rounded-3xl p-10 md:p-14 border border-gray-100 dark:border-gray-800 shadow-sm text-center relative overflow-hidden"
+                    >
+                        {/* BG decoration */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-green-50 dark:bg-green-900/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-50 dark:bg-emerald-900/10 rounded-full translate-y-1/2 -translate-x-1/2" />
+
+                        <div className="relative z-10 max-w-xl mx-auto space-y-5">
+                            <span className="text-4xl">📬</span>
+                            <h2 className="text-3xl font-black font-display text-gray-900 dark:text-white">
+                                Fresh Deals in Your Inbox
+                            </h2>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">
+                                Subscribe for weekly offers, seasonal recipes and exclusive discounts. No spam, ever.
+                            </p>
+                            <form
+                                className="flex flex-col sm:flex-row gap-3"
+                                onSubmit={(e) => e.preventDefault()}
+                            >
+                                <input
+                                    type="email"
+                                    placeholder="your@email.com"
+                                    className="flex-1 px-5 py-3.5 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                                />
+                                <motion.button
+                                    whileHover={{ scale: 1.04 }}
+                                    whileTap={{ scale: 0.96 }}
+                                    className="px-7 py-3.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl shadow-lg shadow-green-500/30 whitespace-nowrap transition-all btn-liquid"
+                                >
+                                    Subscribe 🎉
+                                </motion.button>
+                            </form>
+                            <p className="text-xs text-gray-400">Join 50,000+ happy subscribers. Unsubscribe anytime.</p>
+                        </div>
+                    </motion.div>
+                </section>
+
+            </div>
         </motion.div>
     );
 };
