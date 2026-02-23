@@ -1,24 +1,87 @@
 // ─────────────────────────────────────────────────────────────
 //  FreshMart Departmental Store — Data Layer
-//  15 Departments · 70+ Products · Offers · Combo Deals
+//  15 Departments · 225 Products · Offers · Combo Deals
 // ─────────────────────────────────────────────────────────────
+import { EXTRA_PRODUCTS_1 } from './data-extra-1';
+import { EXTRA_PRODUCTS_2 } from './data-extra-2';
+import { EXTRA_PRODUCTS_3 } from './data-extra-3';
 
 export const DEPARTMENTS = [
-    { id: 1, name: "Fruits & Vegetables", slug: "fruits-vegetables", icon: "🥦", color: "green", description: "Farm-fresh fruits, veggies & greens delivered daily" },
-    { id: 2, name: "Spices", slug: "spices", icon: "🌶️", color: "red", description: "Whole, ground & blended spices from origin farms" },
-    { id: 3, name: "Masala Products", slug: "masala-products", icon: "🫙", color: "orange", description: "Ready-to-use masalas, curry powders & blends" },
-    { id: 4, name: "Flour Varieties", slug: "flour-varieties", icon: "🌾", color: "yellow", description: "Stone-ground whole wheat, millets & specialty flours" },
-    { id: 5, name: "Meat Varieties", slug: "meat-varieties", icon: "🍗", color: "rose", description: "Fresh & marinated chicken, mutton, fish & seafood" },
-    { id: 6, name: "Dairy Products", slug: "dairy-products", icon: "🥛", color: "sky", description: "Milk, paneer, curd, butter, cheese & more" },
-    { id: 7, name: "Snacks & Packaged Foods", slug: "snacks-packaged", icon: "🍿", color: "purple", description: "Chips, biscuits, namkeen, noodles & instant foods" },
-    { id: 8, name: "Bathroom & Personal Care", slug: "personal-care", icon: "🧴", color: "teal", description: "Soaps, shampoo, skincare, oral care & grooming" },
-    { id: 9, name: "Ice Creams & Frozen Items", slug: "frozen-items", icon: "🍦", color: "indigo", description: "Ice creams, frozen veg, frozen meals & more" },
-    { id: 10, name: "Beverages", slug: "beverages", icon: "🥤", color: "cyan", description: "Juices, soft drinks, tea, coffee & energy drinks" },
-    { id: 11, name: "Household Essentials", slug: "household-essentials", icon: "🧹", color: "lime", description: "Cleaning supplies, detergents, mops & sanitisers" },
-    { id: 12, name: "Bakery Products", slug: "bakery-products", icon: "🍞", color: "amber", description: "Fresh-baked bread, cakes, cookies & pastries" },
-    { id: 13, name: "Organic & Healthy Products", slug: "organic-healthy", icon: "🌿", color: "emerald", description: "Certified organic, superfoods & health snacks" },
-    { id: 14, name: "Baby Care Products", slug: "baby-care", icon: "🍼", color: "pink", description: "Diapers, formula, baby food & baby skin care" },
-    { id: 15, name: "Pet Care Products", slug: "pet-care", icon: "🐾", color: "violet", description: "Pet food, grooming, accessories & health care" },
+    {
+        id: 1, name: "Fruits & Vegetables", slug: "fruits-vegetables", icon: "🥦", color: "green",
+        image: "https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=300&auto=format&fit=crop&q=80",
+        description: "Farm-fresh fruits, veggies & greens delivered daily"
+    },
+    {
+        id: 2, name: "Spices", slug: "spices", icon: "🌶️", color: "red",
+        image: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&auto=format&fit=crop&q=80",
+        description: "Whole, ground & blended spices from origin farms"
+    },
+    {
+        id: 3, name: "Masala Products", slug: "masala-products", icon: "🫙", color: "orange",
+        image: "https://images.unsplash.com/photo-1574323347407-f5e1ad6962b3?w=300&auto=format&fit=crop&q=80",
+        description: "Ready-to-use masalas, curry powders & blends"
+    },
+    {
+        id: 4, name: "Flour Varieties", slug: "flour-varieties", icon: "🌾", color: "yellow",
+        image: "https://images.unsplash.com/photo-1621496832759-a0d2e3ab0a98?w=300&auto=format&fit=crop&q=80",
+        description: "Stone-ground whole wheat, millets & specialty flours"
+    },
+    {
+        id: 5, name: "Meat Varieties", slug: "meat-varieties", icon: "🍗", color: "rose",
+        image: "https://images.unsplash.com/photo-1558030006-450675393462?w=300&auto=format&fit=crop&q=80",
+        description: "Fresh & marinated chicken, mutton, fish & seafood"
+    },
+    {
+        id: 6, name: "Dairy Products", slug: "dairy-products", icon: "🥛", color: "sky",
+        image: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=300&auto=format&fit=crop&q=80",
+        description: "Milk, paneer, curd, butter, cheese & more"
+    },
+    {
+        id: 7, name: "Snacks & Packaged Foods", slug: "snacks-packaged", icon: "🍿", color: "purple",
+        image: "https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=300&auto=format&fit=crop&q=80",
+        description: "Chips, biscuits, namkeen, noodles & instant foods"
+    },
+    {
+        id: 8, name: "Bathroom & Personal Care", slug: "personal-care", icon: "🧴", color: "teal",
+        image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=300&auto=format&fit=crop&q=80",
+        description: "Soaps, shampoo, skincare, oral care & grooming"
+    },
+    {
+        id: 9, name: "Ice Creams & Frozen Items", slug: "frozen-items", icon: "🍦", color: "indigo",
+        image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=300&auto=format&fit=crop&q=80",
+        description: "Ice creams, frozen veg, frozen meals & more"
+    },
+    {
+        id: 10, name: "Beverages", slug: "beverages", icon: "🥤", color: "cyan",
+        image: "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=300&auto=format&fit=crop&q=80",
+        description: "Juices, soft drinks, tea, coffee & energy drinks"
+    },
+    {
+        id: 11, name: "Household Essentials", slug: "household-essentials", icon: "🧹", color: "lime",
+        image: "https://images.unsplash.com/photo-1583947581924-860bda6a26df?w=300&auto=format&fit=crop&q=80",
+        description: "Cleaning supplies, detergents, mops & sanitisers"
+    },
+    {
+        id: 12, name: "Bakery Products", slug: "bakery-products", icon: "🍞", color: "amber",
+        image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=300&auto=format&fit=crop&q=80",
+        description: "Fresh-baked bread, cakes, cookies & pastries"
+    },
+    {
+        id: 13, name: "Organic & Healthy Products", slug: "organic-healthy", icon: "🌿", color: "emerald",
+        image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=300&auto=format&fit=crop&q=80",
+        description: "Certified organic, superfoods & health snacks"
+    },
+    {
+        id: 14, name: "Baby Care Products", slug: "baby-care", icon: "🍼", color: "pink",
+        image: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=300&auto=format&fit=crop&q=80",
+        description: "Diapers, formula, baby food & baby skin care"
+    },
+    {
+        id: 15, name: "Pet Care Products", slug: "pet-care", icon: "🐾", color: "violet",
+        image: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&auto=format&fit=crop&q=80",
+        description: "Pet food, grooming, accessories & health care"
+    },
 ];
 
 // Backward-compatible alias
@@ -27,7 +90,7 @@ export const CATEGORIES = DEPARTMENTS;
 // ─────────────────────────────────────────────────────────────
 //  PRODUCTS  (70 products · corrected images)
 // ─────────────────────────────────────────────────────────────
-export const PRODUCTS = [
+const PRODUCTS_BASE = [
 
     // ── Fruits & Vegetables ──────────────────────────────────
     {
@@ -512,6 +575,13 @@ export const PRODUCTS = [
         image: "https://images.unsplash.com/photo-1563114773-84221bd62daa?w=600&auto=format&fit=crop&q=80",
         isFeatured: true,
     },
+];
+
+export const PRODUCTS = [
+    ...PRODUCTS_BASE,
+    ...EXTRA_PRODUCTS_1,
+    ...EXTRA_PRODUCTS_2,
+    ...EXTRA_PRODUCTS_3,
 ];
 
 // ─────────────────────────────────────────────────────────────

@@ -35,26 +35,38 @@ const OfferBanner = () => {
                             initial={{ opacity: 0, x: 30 }}
                             whileInView={{ opacity: 1, x: 0 }}
                             transition={{ delay: idx * 0.08 }}
+                            whileHover={{ y: -8, rotateX: -4, rotateY: 5, scale: 1.03 }}
+                            style={{ transformStyle: 'preserve-3d', perspective: 800 }}
                             className="flex-none w-72 snap-start"
                         >
                             <Link to="/offers">
-                                <div className={`relative rounded-2xl overflow-hidden h-40 bg-gradient-to-br ${grad} shadow-lg hover:shadow-xl transition-shadow cursor-pointer group`}>
+                                <div className={`relative rounded-2xl overflow-hidden h-44 bg-gradient-to-br ${grad} shadow-xl hover:shadow-2xl transition-shadow cursor-pointer group`}>
+                                    {/* Background image */}
                                     <div
-                                        className="absolute inset-0 bg-cover bg-center opacity-20 group-hover:opacity-30 transition-opacity"
+                                        className="absolute inset-0 bg-cover bg-center opacity-25 group-hover:opacity-40 group-hover:scale-110 transition-all duration-500"
                                         style={{ backgroundImage: `url(${offer.image})` }}
                                     />
+                                    {/* Shine sweep on hover */}
+                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                        style={{ background: 'linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.12) 50%, transparent 70%)' }} />
+
                                     <div className="absolute inset-0 p-5 flex flex-col justify-between">
                                         <div>
-                                            <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full">
+                                            <span className="inline-flex items-center gap-1.5 bg-white/25 backdrop-blur-sm text-white text-xs font-black px-3 py-1 rounded-full border border-white/30">
                                                 <Tag className="w-3 h-3" />
                                                 {offer.discount}
                                             </span>
                                         </div>
                                         <div>
-                                            <p className="text-white font-bold text-lg leading-snug">{offer.title}</p>
+                                            <p className="text-white font-black text-xl leading-snug drop-shadow">{offer.title}</p>
                                             <p className="text-white/80 text-xs mt-1 line-clamp-1">{offer.desc}</p>
-                                            <div className="mt-2 flex items-center gap-2">
-                                                <span className="text-xs text-white/70 bg-white/10 px-2 py-0.5 rounded font-mono tracking-wider">{offer.code}</span>
+                                            <div className="mt-2 flex items-center justify-between">
+                                                <span className="text-xs text-white/80 bg-white/15 backdrop-blur-sm px-2.5 py-1 rounded-lg font-mono tracking-wider border border-white/20">
+                                                    {offer.code}
+                                                </span>
+                                                <span className="flex items-center gap-1 text-white text-xs font-bold opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                                                    GRAB DEAL <ArrowRight className="w-3 h-3" />
+                                                </span>
                                             </div>
                                         </div>
                                     </div>

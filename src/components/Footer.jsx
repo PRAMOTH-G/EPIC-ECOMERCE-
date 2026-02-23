@@ -94,10 +94,11 @@ const Footer = () => {
                                 { label: '📦 My Orders', path: '/orders' },
                                 { label: '❤️ Wishlist', path: '/wishlist' },
                                 { label: '🚚 Track Order', path: '/track-order' },
+                                { label: '🪙 Loyalty & Rewards', path: '/loyalty' },
+                                { label: '🔄 Subscription', path: '/subscription' },
+                                { label: '👥 Referral Program', path: '/referral' },
+                                { label: '↩️ Returns & Refunds', path: '/return' },
                                 { label: '⚙️ Admin Panel', path: '/admin' },
-                                { label: 'FAQ', path: '/' },
-                                { label: 'Delivery Policy', path: '/' },
-                                { label: 'Returns & Refunds', path: '/' },
                             ].map(item => (
                                 <li key={item.label}>
                                     <Link to={item.path} className="text-gray-500 dark:text-gray-400 hover:text-green-500 dark:hover:text-green-400 transition-colors text-sm">

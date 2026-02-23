@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const CartContext = createContext();
 
@@ -21,6 +21,35 @@ export function CartProvider({ children }) {
         const saved = localStorage.getItem('recentlyViewed');
         return saved ? JSON.parse(saved) : [];
     });
+
+    // ── Sidebar state ───────────────────────────────────────────
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    // ── Loyalty / FreshCoins ────────────────────────────────────
+    const [loyaltyPoints, setLoyaltyPoints] = useState(() => {
+        return parseInt(localStorage.getItem('freshCoins') || '0', 10);
+    });
+
+    const addLoyaltyPoints = useCallback((amount) => {
+        setLoyaltyPoints(prev => {
+            const next = prev + amount;
+            localStorage.setItem('freshCoins', String(next));
+            return next;
+        });
+    }, []);
+
+    // ── Dark Mode ───────────────────────────────────────────────
+    const [darkMode, setDarkMode] = useState(() => {
+        const saved = localStorage.getItem('darkMode');
+        return saved ? JSON.parse(saved) : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    });
+
+    useEffect(() => {
+        document.documentElement.classList.toggle('dark', darkMode);
+        localStorage.setItem('darkMode', JSON.stringify(darkMode));
+    }, [darkMode]);
+
+    const toggleDarkMode = useCallback(() => setDarkMode(d => !d), []);
 
     useEffect(() => {
         localStorage.setItem('cart', JSON.stringify(cart));
@@ -96,7 +125,14 @@ export function CartProvider({ children }) {
         toggleWishlist,
         addRecentlyViewed,
         cartTotal,
-        cartCount
+        cartCount,
+        // new
+        sidebarOpen,
+        setSidebarOpen,
+        loyaltyPoints,
+        addLoyaltyPoints,
+        darkMode,
+        toggleDarkMode,
     };
 
     return (

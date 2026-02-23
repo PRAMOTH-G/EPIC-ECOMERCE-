@@ -9,8 +9,14 @@ import ProductCard from '../components/ProductCard';
 import Button from '../components/Button';
 import OfferBanner from '../components/OfferBanner';
 import { ComboDealsSection } from '../components/ComboDeal';
+import FlashSale from '../components/FlashSale';
+import BundleBuilder from '../components/BundleBuilder';
+import SmartReorder from '../components/SmartReorder';
+import AIRecommendations from '../components/AIRecommendations';
+import { showToast } from '../components/NotificationToast';
 import { PRODUCTS, DEPARTMENTS } from '../lib/data';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 // ── Stagger container variants ──────────────────────
 const containerVariants = {
@@ -114,7 +120,7 @@ const SectionHeading = ({ title, subtitle, link, linkLabel = 'View All' }) => (
 // ════════════════════════════════════════════════════
 const Home = () => {
     const [selectedCategory, setSelectedCategory] = useState('All');
-    const { recentlyViewed } = useCart();
+    const { recentlyViewed, addToCart } = useCart();
     const heroRef = useRef(null);
     const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
     const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '25%']);
@@ -152,7 +158,7 @@ const Home = () => {
                 <div className="absolute top-20 right-20 w-64 h-64 bg-gradient-to-br from-green-200/30 to-emerald-300/20 animate-morph hidden lg:block" />
 
                 <motion.div style={{ opacity: heroOpacity }} className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
                         {/* Left text */}
                         <motion.div
@@ -187,7 +193,7 @@ const Home = () => {
                             </motion.h1>
 
                             <motion.p variants={itemVariants} className="text-lg text-gray-600 dark:text-gray-400 max-w-lg leading-relaxed">
-                                15 departments, 70+ products — farm fresh produce to pet care, all delivered <strong className="text-green-600">same-day</strong> to your door.
+                                15 departments, 225+ products — farm fresh produce to pet care, all delivered <strong className="text-green-600">same-day</strong> to your door.
                             </motion.p>
 
                             <motion.div variants={itemVariants} className="flex flex-wrap gap-2">
@@ -227,24 +233,35 @@ const Home = () => {
                             initial={{ opacity: 0, scale: 0.85, x: 60 }}
                             animate={{ opacity: 1, scale: 1, x: 0 }}
                             transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-                            className="relative hidden lg:flex items-center justify-center h-[520px]"
+                            className="relative flex items-center justify-center h-[300px] lg:h-[520px] mt-8 lg:mt-0"
                         >
-                            {/* Main image */}
+                            {/* Main image with 3D perspective container */}
                             <motion.div
-                                animate={{ y: [-8, 8] }}
-                                transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut', repeatType: 'mirror' }}
-                                className="relative w-[420px] h-[420px] rounded-[3rem] overflow-hidden shadow-2xl shadow-green-500/20 z-10"
+                                initial={{ opacity: 0, rotateY: -15 }}
+                                animate={{ opacity: 1, rotateY: 0 }}
+                                transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
+                                style={{ transformStyle: 'preserve-3d', perspective: 1000 }}
+                                className="relative"
                             >
-                                <img
-                                    src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&auto=format&fit=crop&q=80"
-                                    alt="Fresh grocery basket"
-                                    className="w-full h-full object-cover"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                                <motion.div
+                                    animate={{ y: [-8, 8], rotateY: [-2, 2] }}
+                                    transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut', repeatType: 'mirror' }}
+                                    className="relative w-[260px] h-[260px] lg:w-[420px] lg:h-[420px] rounded-[3rem] overflow-hidden z-10"
+                                    style={{ boxShadow: '0 40px 80px -20px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1), 20px 20px 0 -4px rgba(22,163,74,0.15), -20px -20px 0 -4px rgba(16,185,129,0.1)' }}
+                                >
+                                    <img
+                                        src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&auto=format&fit=crop&q=80"
+                                        alt="Fresh grocery basket"
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                                    {/* Inner frame glow */}
+                                    <div className="absolute inset-0 rounded-[3rem]" style={{ boxShadow: 'inset 0 0 40px rgba(255,255,255,0.05)' }} />
+                                </motion.div>
                             </motion.div>
 
-                            {/* Floating badges */}
-                            <FloatingBadge className="top-6 -left-6" delay={0}>
+                            {/* Floating badges — hidden on mobile to avoid clutter */}
+                            <FloatingBadge className="top-6 -left-6 hidden sm:flex" delay={0}>
                                 <div className="flex items-center gap-2">
                                     <span className="text-2xl">🌿</span>
                                     <div>
@@ -254,7 +271,7 @@ const Home = () => {
                                 </div>
                             </FloatingBadge>
 
-                            <FloatingBadge className="bottom-16 -left-8" delay={1.5}>
+                            <FloatingBadge className="bottom-16 -left-8 hidden sm:flex" delay={1.5}>
                                 <div className="flex items-center gap-2">
                                     <div className="w-8 h-8 bg-green-100 rounded-xl flex items-center justify-center">
                                         <Truck className="w-4 h-4 text-green-600" />
@@ -266,10 +283,10 @@ const Home = () => {
                                 </div>
                             </FloatingBadge>
 
-                            <FloatingBadge className="top-10 -right-6" delay={0.8}>
+                            <FloatingBadge className="top-10 -right-6 hidden sm:block" delay={0.8}>
                                 <div className="text-center">
                                     <p className="text-2xl font-black text-green-600">
-                                        <AnimCounter target={70} suffix="+" />
+                                        <AnimCounter target={225} suffix="+" />
                                     </p>
                                     <p className="text-[10px] text-gray-500 font-medium">Products</p>
                                 </div>
@@ -322,9 +339,13 @@ const Home = () => {
                             <motion.div
                                 key={idx}
                                 variants={itemVariants}
-                                className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/20 transition-colors"
+                                whileHover={{ y: -6, rotateX: -4, rotateY: 4, scale: 1.04 }}
+                                style={{ transformStyle: 'preserve-3d', perspective: 600 }}
+                                className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 hover:bg-white dark:hover:bg-dark-card hover:shadow-lg hover:shadow-green-500/10 transition-all cursor-default"
                             >
-                                <div className="w-9 h-9 rounded-xl bg-white dark:bg-dark-bg flex items-center justify-center shadow-sm flex-shrink-0">
+                                <div className="w-9 h-9 rounded-xl bg-white dark:bg-dark-bg flex items-center justify-center shadow-sm flex-shrink-0"
+                                    style={{ boxShadow: '0 3px 0 rgba(22,163,74,0.2), 0 4px 12px rgba(22,163,74,0.15)' }}
+                                >
                                     {item.icon}
                                 </div>
                                 <div>
@@ -375,7 +396,10 @@ const Home = () => {
                                         : 'bg-white dark:bg-dark-card border-gray-100 dark:border-gray-800 text-gray-500 hover:border-green-200 dark:hover:border-green-800'
                                         }`}
                                 >
-                                    <span>{dept.icon}</span>
+                                    {dept.image
+                                        ? <img src={dept.image} alt={dept.name} className="w-5 h-5 rounded-full object-cover" />
+                                        : <span>{dept.icon}</span>
+                                    }
                                     <span className="whitespace-nowrap">{dept.name}</span>
                                 </motion.button>
                             );
@@ -389,20 +413,32 @@ const Home = () => {
                             initial="hidden"
                             whileInView="visible"
                             viewport={{ once: true, margin: '-60px' }}
-                            className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3"
+                            className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2 sm:gap-3"
                         >
                             {DEPARTMENTS.map((dept) => {
                                 const grad = DEPT_GRADIENTS[dept.color] || 'from-gray-400 to-gray-500';
                                 return (
-                                    <motion.div key={dept.id} variants={itemVariants}>
+                                    <motion.div key={dept.id} variants={itemVariants}
+                                        whileHover={{ y: -6, rotateX: -4, rotateY: 4, scale: 1.05 }}
+                                        style={{ transformStyle: 'preserve-3d', perspective: 600 }}
+                                    >
                                         <Link
                                             to={`/department/${dept.slug}`}
-                                            className="group flex flex-col items-center text-center p-4 rounded-2xl bg-white dark:bg-dark-card border border-gray-100 dark:border-gray-800 hover:shadow-lg hover:border-green-200 hover:-translate-y-1 transition-all duration-300"
+                                            className="group flex flex-col items-center text-center rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 shadow-md hover:shadow-2xl hover:shadow-black/20 transition-all duration-300 bg-white dark:bg-dark-card"
                                         >
-                                            <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center text-2xl mb-2 shadow-md group-hover:scale-115 transition-transform duration-300`}>
-                                                {dept.icon}
+                                            {/* Photo banner */}
+                                            <div className="relative w-full overflow-hidden" style={{ aspectRatio: '4/3' }}>
+                                                {dept.image
+                                                    ? <img src={dept.image} alt={dept.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                    : <div className={`w-full h-full bg-gradient-to-br ${grad} flex items-center justify-center text-3xl`}>{dept.icon}</div>
+                                                }
+                                                {/* gradient overlay */}
+                                                <div className={`absolute inset-0 bg-gradient-to-t ${dept.image ? 'from-black/60 via-black/10 to-transparent' : 'from-black/40 to-transparent'}`} />
+                                                {/* colour pip */}
+                                                <div className={`absolute top-2 right-2 w-2 h-2 rounded-full bg-gradient-to-br ${grad} shadow-md`} />
                                             </div>
-                                            <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-green-600 leading-tight">
+                                            {/* Label */}
+                                            <span className="px-1.5 py-2 text-[10px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-green-600 leading-tight block">
                                                 {dept.name}
                                             </span>
                                         </Link>
@@ -413,6 +449,15 @@ const Home = () => {
                     )}
                 </section>
 
+                {/* ── FLASH SALE ── */}
+                <FlashSale onAddToCart={(product) => {
+                    addToCart(product, 1);
+                    showToast({ type: 'cart', title: 'Added to Cart! 🛒', message: product.title });
+                }} />
+
+                {/* ── BUNDLE BUILDER (Build Your Thali) ── */}
+                <BundleBuilder />
+
                 {/* ── FEATURED / CATEGORY PRODUCTS ── */}
                 <section>
                     <SectionHeading
@@ -421,7 +466,7 @@ const Home = () => {
                         link={selectedCategory !== 'All' ? `/department/${DEPARTMENTS.find(d => d.name === selectedCategory)?.slug || ''}` : '/offers'}
                         linkLabel={selectedCategory !== 'All' ? `Browse All ${selectedCategory}` : 'View All'}
                     />
-                    <motion.div layout className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-5">
+                    <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-5">
                         <AnimatePresence mode="popLayout">
                             {displayProducts.map(product => (
                                 <ProductCard key={product.id} product={product} />
@@ -437,24 +482,40 @@ const Home = () => {
                 </section>
 
                 {/* ── STATS STRIP ── */}
-                <section className="rounded-3xl bg-gradient-to-br from-green-600 to-emerald-700 text-white p-10 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.12),transparent)]" />
+                <section className="rounded-3xl bg-gradient-to-br from-green-600 to-emerald-700 text-white p-10 relative overflow-hidden"
+                    style={{ boxShadow: '0 30px 60px -15px rgba(22,163,74,0.5), 0 0 0 1px rgba(255,255,255,0.08)' }}
+                >
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.15),transparent)]" />
                     <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/5 rounded-full" />
                     <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-black/10 rounded-full" />
+                    {/* 3D grid lines */}
+                    <div className="absolute inset-0 opacity-5"
+                        style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
                     <motion.div
                         variants={containerVariants}
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true }}
-                        className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
+                        className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-6 text-center"
                     >
                         {[
-                            { value: 70, suffix: '+', label: 'Products' },
-                            { value: 15, suffix: '', label: 'Departments' },
-                            { value: 50000, suffix: '+', label: 'Happy Customers' },
-                            { value: 99, suffix: '%', label: 'Satisfaction Rate' },
+                            { value: 225, suffix: '+', label: 'Products', icon: '📦' },
+                            { value: 15, suffix: '', label: 'Departments', icon: '🏪' },
+                            { value: 50000, suffix: '+', label: 'Happy Customers', icon: '😊' },
+                            { value: 99, suffix: '%', label: 'Satisfaction Rate', icon: '⭐' },
                         ].map((stat, idx) => (
-                            <motion.div key={idx} variants={itemVariants}>
+                            <motion.div key={idx} variants={itemVariants}
+                                whileHover={{ y: -8, scale: 1.06 }}
+                                className="relative rounded-2xl p-6 cursor-default"
+                                style={{
+                                    background: 'rgba(255,255,255,0.1)',
+                                    backdropFilter: 'blur(12px)',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)',
+                                    transition: 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease'
+                                }}
+                            >
+                                <div className="text-3xl mb-2">{stat.icon}</div>
                                 <p className="text-4xl md:text-5xl font-black tracking-tight">
                                     <AnimCounter target={stat.value} suffix={stat.suffix} />
                                 </p>
@@ -475,7 +536,7 @@ const Home = () => {
                         link="/offers"
                         linkLabel="See All Deals"
                     />
-                    <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-5">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-5">
                         {bestSellers.map(product => (
                             <ProductCard key={product.id} product={product} />
                         ))}
@@ -494,7 +555,7 @@ const Home = () => {
                             <Clock className="w-4 h-4 text-gray-400" />
                             <span className="text-sm text-gray-400">Your browsing history</span>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-5">
                             {recentlyViewed.slice(0, 5).map(product => (
                                 <ProductCard key={product.id} product={product} />
                             ))}
@@ -551,6 +612,12 @@ const Home = () => {
                             </div>
                         </motion.div>
                     </div>
+                </section>
+
+                {/* ── AI RECOMMENDATIONS + SMART REORDER ── */}
+                <section className="py-4 space-y-8">
+                    <AIRecommendations />
+                    <SmartReorder />
                 </section>
 
                 {/* ── NEWSLETTER ── */}

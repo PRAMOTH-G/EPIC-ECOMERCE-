@@ -1,392 +1,233 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-    CheckCircle, Clock, Package, Truck, Home,
-    MapPin, Phone, Search, ChevronDown, ChevronUp,
-    Leaf, ArrowLeft, AlertCircle
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Package, Check, Clock, Truck, Star, MapPin, Phone, ChevronRight, RotateCcw } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import LiveTrackingMap from '../components/LiveTrackingMap';
 
-// ── Order status pipeline ─────────────────────────────────────────
 const STAGES = [
+    { key: 'placed', icon: Package, label: 'Order Placed', color: 'blue', desc: 'Your order has been confirmed' },
+    { key: 'packed', icon: Package, label: 'Packing', color: 'purple', desc: 'Items are being packed carefully' },
+    { key: 'picked', icon: Truck, label: 'Picked Up', color: 'orange', desc: 'Out for delivery with our rider' },
+    { key: 'enroute', icon: MapPin, label: 'On the Way', color: 'amber', desc: '10 mins away from your location' },
+    { key: 'delivered', icon: Check, label: 'Delivered', color: 'green', desc: 'Package delivered successfully! 🎉' },
+];
+
+// Simulate current stage based on time (demo purposes)
+function getDemoStage() {
+    const min = new Date().getMinutes();
+    if (min < 12) return 0;
+    if (min < 24) return 1;
+    if (min < 36) return 2;
+    if (min < 48) return 3;
+    return 4;
+}
+
+function useDeliveryCountdown() {
+    const [secs, setSecs] = useState(() => {
+        const eta = new Date();
+        eta.setMinutes(eta.getMinutes() + 30);
+        return Math.max(0, Math.floor((eta - Date.now()) / 1000));
+    });
+    useEffect(() => {
+        const id = setInterval(() => setSecs(s => Math.max(0, s - 1)), 1000);
+        return () => clearInterval(id);
+    }, []);
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+const DEMO_ORDERS = [
     {
-        key: 'confirmed',
-        label: 'Order Confirmed',
-        icon: CheckCircle,
-        color: 'green',
-        desc: 'Your order has been received and is being processed.',
-    },
-    {
-        key: 'packing',
-        label: 'Being Packed',
-        icon: Package,
-        color: 'blue',
-        desc: 'Our team is carefully picking and packing your fresh items.',
-    },
-    {
-        key: 'out_for_delivery',
-        label: 'Out for Delivery',
-        icon: Truck,
-        color: 'orange',
-        desc: 'Your order is on its way! The delivery agent is en route.',
-    },
-    {
-        key: 'delivered',
-        label: 'Delivered',
-        icon: Home,
-        color: 'emerald',
-        desc: 'Your fresh groceries have been delivered. Enjoy your meal!',
+        id: 'FM-2026-001',
+        date: '22 Feb 2026, 10:30 AM',
+        items: ['Organic Red Apples', 'Amul Fresh Milk 500ml', 'Turmeric Powder'],
+        total: 718,
+        address: '42, Green Park Layout, Bengaluru - 560001',
+        rider: { name: 'Rajan Kumar', phone: '+91 98765 43210', rating: 4.8 },
+        stage: getDemoStage(),
     },
 ];
 
-const colorMap = {
-    green: { ring: 'ring-green-400', bg: 'bg-green-500', text: 'text-green-600', light: 'bg-green-50 dark:bg-green-900/20', border: 'border-green-200 dark:border-green-700' },
-    blue: { ring: 'ring-blue-400', bg: 'bg-blue-500', text: 'text-blue-600', light: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-200 dark:border-blue-700' },
-    orange: { ring: 'ring-orange-400', bg: 'bg-orange-500', text: 'text-orange-600', light: 'bg-orange-50 dark:bg-orange-900/20', border: 'border-orange-200 dark:border-orange-700' },
-    emerald: { ring: 'ring-emerald-400', bg: 'bg-emerald-500', text: 'text-emerald-600', light: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-200 dark:border-emerald-700' },
-};
-
-// Compute how far along the stage list an order is (0-indexed)
-const stageIndex = (status) => STAGES.findIndex((s) => s.key === status);
-
-// Simulate stage progression based on elapsed time since order
-const simulateCurrentStage = (order) => {
-    const elapsed = (Date.now() - new Date(order.date).getTime()) / 1000; // seconds
-    if (elapsed > 120) return 'delivered';
-    if (elapsed > 80) return 'out_for_delivery';
-    if (elapsed > 40) return 'packing';
-    return 'confirmed';
-};
-
-// ── Search bar ────────────────────────────────────────────────────
-const TrackingSearch = ({ onSearch }) => {
-    const [input, setInput] = useState('');
-    return (
-        <div className="flex gap-3 max-w-xl mx-auto">
-            <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value.toUpperCase())}
-                    onKeyDown={(e) => e.key === 'Enter' && onSearch(input.trim())}
-                    placeholder="Enter Order ID  e.g. FM-XXXXXX"
-                    className="w-full pl-10 pr-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition-all font-mono"
-                />
-            </div>
-            <button
-                onClick={() => onSearch(input.trim())}
-                className="px-6 py-3.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors text-sm shadow-lg shadow-green-600/20"
-            >
-                Track
-            </button>
-        </div>
-    );
-};
-
-// ── Main component ────────────────────────────────────────────────
 const TrackOrder = () => {
-    const [searchParams, setSearchParams] = useSearchParams();
-    const idFromUrl = searchParams.get('id') || '';
-
-    const [orderId, setOrderId] = useState(idFromUrl);
-    const [order, setOrder] = useState(null);
-    const [notFound, setNotFound] = useState(false);
-    const [currentStage, setCurrentStage] = useState('confirmed');
-    const [showItems, setShowItems] = useState(false);
-
-    // Auto-load order from URL param on mount
-    useEffect(() => {
-        if (idFromUrl) findOrder(idFromUrl);
-    }, [idFromUrl]);
-
-    // Tick every 10 s to advance demo stage
-    useEffect(() => {
-        if (!order) return;
-        const tick = setInterval(() => {
-            setCurrentStage(simulateCurrentStage(order));
-        }, 10_000);
-        return () => clearInterval(tick);
-    }, [order]);
-
-    const findOrder = (id) => {
-        if (!id) return;
-        const stored = JSON.parse(localStorage.getItem('fm_orders') || '[]');
-        const found = stored.find((o) => o.id === id);
-        if (found) {
-            setOrder(found);
-            setCurrentStage(simulateCurrentStage(found));
-            setNotFound(false);
-            setSearchParams({ id });
-        } else {
-            setOrder(null);
-            setNotFound(true);
-        }
-    };
-
-    const activeIdx = stageIndex(currentStage);
+    const countdown = useDeliveryCountdown();
+    const [selectedOrder] = useState(DEMO_ORDERS[0]);
+    const currentStage = selectedOrder.stage;
 
     return (
-        <div className="min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
-            {/* Header */}
-            <div className="text-center mb-10">
-                <div className="inline-flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-                        <Leaf className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-display font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-500">FreshMart</span>
-                </div>
-                <h1 className="text-3xl sm:text-4xl font-bold font-display text-gray-900 dark:text-white">Track Your Order</h1>
-                <p className="text-gray-500 mt-2 text-sm">Enter your order ID to see real-time delivery status</p>
-            </div>
-
-            {/* Search */}
+        <div className="min-h-screen pt-24 pb-20 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
             <div className="mb-8">
-                <TrackingSearch onSearch={findOrder} />
+                <h1 className="text-3xl font-black text-gray-900 dark:text-white">📦 Track Your Order</h1>
+                <p className="text-gray-500 mt-1">Real-time delivery status</p>
             </div>
 
-            {/* Not found */}
-            <AnimatePresence>
-                {notFound && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        className="flex items-center gap-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-2xl p-5 mb-6"
-                    >
-                        <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+            {/* Order card */}
+            <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-lg overflow-hidden mb-6">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-5 text-white">
+                    <div className="flex items-center justify-between">
                         <div>
-                            <p className="font-semibold text-red-700 dark:text-red-400">Order not found</p>
-                            <p className="text-xs text-red-500 mt-0.5">
-                                No order with that ID exists. Please check and try again, or{' '}
-                                <Link to="/" className="underline">continue shopping</Link>.
-                            </p>
+                            <p className="text-white/70 text-xs">Order ID</p>
+                            <p className="text-lg font-black">{selectedOrder.id}</p>
+                            <p className="text-white/70 text-xs mt-0.5">{selectedOrder.date}</p>
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* ── Order found ──────────────────────────────────── */}
-            <AnimatePresence>
-                {order && (
-                    <motion.div
-                        key={order.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        className="space-y-6"
-                    >
-                        {/* Order meta */}
-                        <div className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Order ID</p>
-                                <p className="font-mono font-bold text-gray-900 dark:text-white text-lg">{order.id}</p>
-                                <p className="text-xs text-gray-400 mt-1">
-                                    Placed on {new Date(order.date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
-                                </p>
-                            </div>
-                            <div className="flex flex-col items-start sm:items-end gap-1">
-                                <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full ${colorMap[STAGES[activeIdx]?.color || 'green'].light} ${colorMap[STAGES[activeIdx]?.color || 'green'].text} border ${colorMap[STAGES[activeIdx]?.color || 'green'].border}`}>
-                                    <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                                    {STAGES[activeIdx]?.label || 'Confirmed'}
-                                </span>
-                                <p className="text-sm font-bold text-gray-900 dark:text-white">${order.orderTotal?.toFixed(2)}</p>
-                            </div>
-                        </div>
-
-                        {/* ── Visual tracker ──────────────────── */}
-                        <div className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
-                            <h2 className="font-bold text-gray-900 dark:text-white mb-6 text-base">Delivery Progress</h2>
-
-                            {/* Desktop: horizontal stepper */}
-                            <div className="hidden sm:flex items-start justify-between relative mb-6">
-                                {/* connector line */}
-                                <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-100 dark:bg-gray-800 -z-0" />
-                                <div
-                                    className="absolute top-5 left-0 h-0.5 bg-green-500 transition-all duration-700 -z-0"
-                                    style={{ width: `${(activeIdx / (STAGES.length - 1)) * 100}%` }}
-                                />
-
-                                {STAGES.map((stage, i) => {
-                                    const Icon = stage.icon;
-                                    const done = i <= activeIdx;
-                                    const active = i === activeIdx;
-                                    const cm = colorMap[stage.color];
-                                    return (
-                                        <div key={stage.key} className="flex flex-col items-center w-1/4 relative z-10">
-                                            <motion.div
-                                                initial={false}
-                                                animate={done ? { scale: [1, 1.2, 1] } : {}}
-                                                transition={{ duration: 0.4 }}
-                                                className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-500 bg-white dark:bg-gray-900
-                                                    ${done ? `${cm.bg} border-transparent` : 'border-gray-200 dark:border-gray-700'}
-                                                    ${active ? `ring-4 ${cm.ring}` : ''}`}
-                                            >
-                                                <Icon className={`w-5 h-5 ${done ? 'text-white' : 'text-gray-300 dark:text-gray-600'}`} />
-                                            </motion.div>
-                                            <p className={`text-xs font-semibold mt-2 text-center ${done ? cm.text : 'text-gray-400'}`}>{stage.label}</p>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Mobile: vertical stepper */}
-                            <div className="sm:hidden space-y-0">
-                                {STAGES.map((stage, i) => {
-                                    const Icon = stage.icon;
-                                    const done = i <= activeIdx;
-                                    const active = i === activeIdx;
-                                    const last = i === STAGES.length - 1;
-                                    const cm = colorMap[stage.color];
-                                    return (
-                                        <div key={stage.key} className="flex items-start gap-4">
-                                            <div className="flex flex-col items-center">
-                                                <div className={`w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all duration-500
-                                                    ${done ? `${cm.bg} border-transparent` : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'}
-                                                    ${active ? `ring-4 ${cm.ring}` : ''}`}>
-                                                    <Icon className={`w-4 h-4 ${done ? 'text-white' : 'text-gray-300 dark:text-gray-600'}`} />
-                                                </div>
-                                                {!last && <div className={`w-0.5 h-10 transition-colors duration-500 ${i < activeIdx ? 'bg-green-400' : 'bg-gray-100 dark:bg-gray-800'}`} />}
-                                            </div>
-                                            <div className="pb-6">
-                                                <p className={`text-sm font-semibold ${done ? cm.text : 'text-gray-400'}`}>{stage.label}</p>
-                                                {active && <p className="text-xs text-gray-400 mt-0.5">{stage.desc}</p>}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Active stage description (desktop) */}
-                            <div className={`hidden sm:flex items-start gap-3 mt-4 p-4 rounded-xl ${colorMap[STAGES[activeIdx]?.color || 'green'].light} border ${colorMap[STAGES[activeIdx]?.color || 'green'].border}`}>
-                                <Clock className={`w-4 h-4 mt-0.5 shrink-0 ${colorMap[STAGES[activeIdx]?.color || 'green'].text}`} />
-                                <div>
-                                    <p className={`text-sm font-semibold ${colorMap[STAGES[activeIdx]?.color || 'green'].text}`}>{STAGES[activeIdx]?.label}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{STAGES[activeIdx]?.desc}</p>
-                                </div>
-                            </div>
-
-                            {/* Demo note */}
-                            <p className="text-[11px] text-gray-400 mt-4 text-center">
-                                🧪 Demo: Status auto-advances every ~40 s from order time. Refresh to update.
-                            </p>
-                        </div>
-
-                        {/* ── Delivery address ─────────────────── */}
-                        {order.delivery && (
-                            <div className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
-                                <h2 className="font-bold text-gray-900 dark:text-white mb-4 text-base">Delivery Address</h2>
-                                <div className="flex items-start gap-3 text-sm">
-                                    <MapPin className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
-                                    <div className="text-gray-600 dark:text-gray-300 space-y-0.5">
-                                        <p className="font-semibold text-gray-900 dark:text-white">{order.delivery.name}</p>
-                                        <p>{order.delivery.address}</p>
-                                        <p>{order.delivery.city}, {order.delivery.zip}</p>
-                                    </div>
-                                </div>
-                                {order.delivery.phone && (
-                                    <div className="flex items-center gap-3 mt-3 text-sm text-gray-500">
-                                        <Phone className="w-4 h-4 text-green-600 shrink-0" />
-                                        <span>{order.delivery.phone}</span>
-                                    </div>
-                                )}
-                                {order.delivery.instructions && (
-                                    <div className="mt-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-lg px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
-                                        📝 {order.delivery.instructions}
-                                    </div>
-                                )}
+                        {currentStage < 4 && (
+                            <div className="text-right">
+                                <p className="text-white/70 text-xs">Estimated delivery in</p>
+                                <p className="text-3xl font-black tabular-nums">{countdown}</p>
+                                <p className="text-white/70 text-xs">minutes</p>
                             </div>
                         )}
-
-                        {/* ── Order items (collapsible) ─────────── */}
-                        <div className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
-                            <button
-                                onClick={() => setShowItems(!showItems)}
-                                className="w-full flex items-center justify-between p-6 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <Package className="w-5 h-5 text-green-600" />
-                                    <span className="font-bold text-gray-900 dark:text-white text-base">
-                                        Order Items ({order.items?.reduce((s, i) => s + i.quantity, 0) || 0})
-                                    </span>
+                        {currentStage === 4 && (
+                            <div className="text-right">
+                                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                                    <Check className="w-7 h-7 text-white" />
                                 </div>
-                                {showItems ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-                            </button>
+                                <p className="text-xs text-white/80 mt-1">Delivered!</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
 
-                            <AnimatePresence>
-                                {showItems && (
+                {/* Timeline */}
+                <div className="px-6 py-6">
+                    <div className="relative">
+                        {/* Vertical line */}
+                        <div className="absolute left-5 top-5 bottom-5 w-0.5 bg-gray-100 dark:bg-gray-800" />
+                        {/* Progress line */}
+                        <motion.div
+                            initial={{ height: 0 }}
+                            animate={{ height: `${(currentStage / (STAGES.length - 1)) * 100}%` }}
+                            transition={{ duration: 1.5, ease: 'easeOut' }}
+                            className="absolute left-5 top-5 w-0.5 bg-green-500 origin-top"
+                        />
+                        <div className="space-y-6">
+                            {STAGES.map((stage, i) => {
+                                const Icon = stage.icon;
+                                const done = i <= currentStage;
+                                const active = i === currentStage;
+                                return (
                                     <motion.div
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: 'auto', opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.25 }}
-                                        className="overflow-hidden"
+                                        key={stage.key}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: i * 0.15 }}
+                                        className="flex items-start gap-4 relative"
                                     >
-                                        <div className="px-6 pb-6 space-y-4 border-t border-gray-100 dark:border-gray-800 pt-4">
-                                            {order.items?.map((item) => (
-                                                <div key={item.id} className="flex items-center gap-4">
-                                                    <img src={item.image} alt={item.title}
-                                                        className="w-14 h-14 object-cover rounded-xl bg-gray-100 shrink-0" />
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{item.title}</p>
-                                                        <p className="text-xs text-gray-400">Qty: {item.quantity} {item.unit && `· ${item.unit}`}</p>
-                                                    </div>
-                                                    <p className="text-sm font-bold text-gray-900 dark:text-white shrink-0">
-                                                        ${(item.price * item.quantity).toFixed(2)}
-                                                    </p>
-                                                </div>
-                                            ))}
-
-                                            {/* Price summary */}
-                                            <div className="border-t border-gray-100 dark:border-gray-800 pt-3 space-y-1.5 text-sm">
-                                                {order.promoDiscount > 0 && (
-                                                    <div className="flex justify-between text-green-600">
-                                                        <span>Discount ({order.promoCode?.code})</span>
-                                                        <span>-${order.promoDiscount.toFixed(2)}</span>
-                                                    </div>
-                                                )}
-                                                <div className="flex justify-between text-gray-500">
-                                                    <span>Delivery</span>
-                                                    <span>{order.shippingCost === 0 ? 'Free' : `$${order.shippingCost?.toFixed(2)}`}</span>
-                                                </div>
-                                                <div className="flex justify-between text-gray-500">
-                                                    <span>Tax</span>
-                                                    <span>${order.tax?.toFixed(2)}</span>
-                                                </div>
-                                                <div className="flex justify-between font-bold text-gray-900 dark:text-white text-base pt-1 border-t border-gray-100 dark:border-gray-800">
-                                                    <span>Total</span>
-                                                    <span className="text-green-600">${order.orderTotal?.toFixed(2)}</span>
-                                                </div>
-                                            </div>
+                                        {/* Step circle */}
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all duration-500 ${done
+                                            ? 'bg-green-500 shadow-lg shadow-green-500/30'
+                                            : 'bg-gray-100 dark:bg-gray-800'
+                                            } ${active ? 'ring-4 ring-green-100 dark:ring-green-900/40' : ''}`}>
+                                            {done
+                                                ? i < currentStage
+                                                    ? <Check className="w-5 h-5 text-white" />
+                                                    : <Icon className="w-5 h-5 text-white" />
+                                                : <Icon className="w-5 h-5 text-gray-400" />
+                                            }
+                                            {active && (
+                                                <span className="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-30" />
+                                            )}
+                                        </div>
+                                        {/* Text */}
+                                        <div className="pt-1.5">
+                                            <p className={`text-sm font-bold ${done ? 'text-gray-900 dark:text-white' : 'text-gray-400'}`}>
+                                                {stage.label}
+                                                {active && <span className="ml-2 text-[10px] text-green-600 font-black bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded-full">NOW</span>}
+                                            </p>
+                                            <p className={`text-xs ${done ? 'text-gray-500' : 'text-gray-300 dark:text-gray-600'}`}>{stage.desc}</p>
                                         </div>
                                     </motion.div>
-                                )}
-                            </AnimatePresence>
+                                );
+                            })}
                         </div>
-
-                        {/* Back to shop */}
-                        <div className="text-center">
-                            <Link to="/" className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-medium text-sm transition-colors">
-                                <ArrowLeft className="w-4 h-4" /> Back to FreshMart
-                            </Link>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Empty state (no search yet) */}
-            {!order && !notFound && !idFromUrl && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-center py-16"
-                >
-                    <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-5">
-                        <Truck className="w-10 h-10 text-gray-300 dark:text-gray-600" />
                     </div>
-                    <p className="text-gray-400 text-sm">Enter your <span className="font-mono font-semibold">FM-XXXXXX</span> order ID above to track your delivery.</p>
-                    <p className="text-xs text-gray-300 dark:text-gray-600 mt-2">You'll find your Order ID in the confirmation email or the Success page.</p>
+                </div>
+
+                {/* Live Map — shown once picked up */}
+                {currentStage >= 2 && (
+                    <div className="px-6 pb-4">
+                        <LiveTrackingMap orderId={selectedOrder.id} />
+                    </div>
+                )}
+
+                {/* Rider info */}
+                {currentStage >= 2 && currentStage < 4 && (
+                    <div className="px-6 pb-6">
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/20 rounded-2xl p-4 flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl font-bold">
+                                {selectedOrder.rider.name[0]}
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-sm font-bold text-gray-800 dark:text-white">{selectedOrder.rider.name}</p>
+                                <p className="text-xs text-gray-500">Your Delivery Partner</p>
+                                <div className="flex items-center gap-1 mt-0.5">
+                                    <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                                    <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">{selectedOrder.rider.rating}</span>
+                                </div>
+                            </div>
+                            <a
+                                href={`tel:${selectedOrder.rider.phone}`}
+                                className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition-colors"
+                            >
+                                <Phone className="w-3.5 h-3.5" /> Call
+                            </a>
+                        </div>
+                    </div>
+                )}
+
+                {/* Items */}
+                <div className="px-6 pb-6 border-t border-gray-50 dark:border-gray-800 pt-4">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Items in this order</p>
+                    <div className="space-y-1.5">
+                        {selectedOrder.items.map(item => (
+                            <div key={item} className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                <span className="text-sm text-gray-700 dark:text-gray-300">{item}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex justify-between mt-4 pt-3 border-t border-gray-50 dark:border-gray-800">
+                        <p className="text-sm text-gray-500">Order Total</p>
+                        <p className="text-sm font-black text-gray-900 dark:text-white">₹{selectedOrder.total}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Delivery address */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                <div>
+                    <p className="text-sm font-bold text-gray-800 dark:text-white">Delivery Address</p>
+                    <p className="text-sm text-gray-500 mt-0.5">{selectedOrder.address}</p>
+                </div>
+            </div>
+
+            {/* Rate order (after delivered) */}
+            {currentStage === 4 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-6 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/20 rounded-2xl border border-yellow-100 dark:border-yellow-900/30 p-5 text-center"
+                >
+                    <p className="text-xl font-black text-gray-900 dark:text-white mb-1">🎉 Order Delivered!</p>
+                    <p className="text-sm text-gray-500 mb-4">How was your experience?</p>
+                    <div className="flex justify-center gap-2 mb-4">
+                        {[1, 2, 3, 4, 5].map(s => (
+                            <button key={s} className="text-3xl hover:scale-125 transition-transform">⭐</button>
+                        ))}
+                    </div>
+                    <p className="text-xs text-gray-400">Earned 71 FreshCoins from this order! 🪙</p>
                 </motion.div>
             )}
+
+            {/* Return link */}
+            <div className="mt-4 text-center">
+                <Link to="/return" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-orange-600 transition-colors">
+                    <RotateCcw className="w-4 h-4" />
+                    Need to return an item?
+                </Link>
+            </div>
         </div>
     );
 };

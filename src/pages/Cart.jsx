@@ -108,35 +108,36 @@ const Cart = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, x: -120, transition: { duration: 0.25 } }}
-                                className="flex flex-col sm:flex-row items-center gap-5 p-5 rounded-2xl bg-white dark:bg-dark-card shadow-sm border border-gray-100 dark:border-gray-800 hover:border-green-200 dark:hover:border-green-800 transition-colors"
+                                className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:p-5 rounded-2xl bg-white dark:bg-dark-card shadow-sm border border-gray-100 dark:border-gray-800 hover:border-green-200 dark:hover:border-green-800 transition-colors"
                             >
                                 {/* Image */}
                                 <Link to={`/product/${item.id}`} className="shrink-0">
                                     <img
                                         src={item.image}
                                         alt={item.title}
-                                        className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-xl bg-gray-100"
+                                        className="w-20 h-20 sm:w-28 sm:h-28 object-cover rounded-xl bg-gray-100"
+                                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&auto=format&fit=crop&q=80'; }}
                                     />
                                 </Link>
 
                                 {/* Info */}
-                                <div className="flex-1 text-center sm:text-left min-w-0">
+                                <div className="flex-1 text-left min-w-0">
                                     <Link to={`/product/${item.id}`}>
-                                        <h3 className="font-semibold text-base text-gray-900 dark:text-white hover:text-green-600 transition-colors line-clamp-2">
+                                        <h3 className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white hover:text-green-600 transition-colors line-clamp-2">
                                             {item.title}
                                         </h3>
                                     </Link>
                                     <p className="text-xs text-gray-400 mt-0.5">{item.category}</p>
                                     <p className="text-sm font-medium text-green-600 dark:text-green-400 mt-1">
-                                        ${item.price.toFixed(2)} {item.unit && <span className="text-gray-400 font-normal">/ {item.unit}</span>}
+                                        ₹{item.price.toFixed(0)} {item.unit && <span className="text-gray-400 font-normal">/ {item.unit}</span>}
                                     </p>
                                 </div>
 
                                 {/* Controls */}
-                                <div className="flex flex-col items-center sm:items-end gap-3">
+                                <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-end gap-3 w-full sm:w-auto">
                                     {/* Line total */}
-                                    <p className="font-bold text-xl text-gray-900 dark:text-white">
-                                        ${(item.price * item.quantity).toFixed(2)}
+                                    <p className="font-bold text-lg sm:text-xl text-gray-900 dark:text-white">
+                                        ₹{(item.price * item.quantity).toFixed(0)}
                                     </p>
 
                                     {/* Quantity stepper */}
@@ -190,7 +191,7 @@ const Cart = () => {
                                     </p>
                                 ) : (
                                     <p className="text-xs font-medium text-green-700 dark:text-green-400">
-                                        Add <strong>${shipping.toFixed(2)}</strong> more for <strong>Free Delivery</strong>
+                                        Add <strong>₹{shipping.toFixed(0)}</strong> more for <strong>Free Delivery</strong>
                                     </p>
                                 )}
                             </div>
@@ -247,27 +248,27 @@ const Cart = () => {
                         <div className="space-y-3 text-sm border-t border-gray-100 dark:border-gray-800 pt-4">
                             <div className="flex justify-between text-gray-600 dark:text-gray-400">
                                 <span>Subtotal</span>
-                                <span className="font-medium text-gray-900 dark:text-white">${cartTotal.toFixed(2)}</span>
+                                <span className="font-medium text-gray-900 dark:text-white">₹{cartTotal.toFixed(0)}</span>
                             </div>
                             {promoCode && (
                                 <div className="flex justify-between text-green-600 dark:text-green-400">
                                     <span>Discount ({(promoCode.discount * 100).toFixed(0)}%)</span>
-                                    <span className="font-medium">-${discount.toFixed(2)}</span>
+                                    <span className="font-medium">-₹{discount.toFixed(0)}</span>
                                 </div>
                             )}
                             <div className="flex justify-between text-gray-600 dark:text-gray-400">
                                 <span>Delivery</span>
                                 <span className={`font-medium ${shippingCost === 0 ? 'text-green-600' : 'text-gray-900 dark:text-white'}`}>
-                                    {shippingCost === 0 ? '🎉 Free' : `$${shippingCost.toFixed(2)}`}
+                                    {shippingCost === 0 ? '🎉 FREE' : `₹${shippingCost.toFixed(0)}`}
                                 </span>
                             </div>
                             <div className="flex justify-between text-gray-600 dark:text-gray-400">
                                 <span>Tax (8%)</span>
-                                <span className="font-medium text-gray-900 dark:text-white">${tax.toFixed(2)}</span>
+                                <span className="font-medium text-gray-900 dark:text-white">₹{tax.toFixed(0)}</span>
                             </div>
                             <div className="border-t border-gray-200 dark:border-gray-700 pt-3 flex justify-between items-center text-lg font-bold">
                                 <span className="text-gray-900 dark:text-white">Total</span>
-                                <span className="text-green-600 text-xl">${orderTotal.toFixed(2)}</span>
+                                <span className="text-green-600 text-xl">₹{orderTotal.toFixed(0)}</span>
                             </div>
                         </div>
 

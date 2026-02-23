@@ -1,23 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Heart, Menu, X, User, LogOut, Package, ChevronDown, MapPin, LayoutGrid, Star, Truck } from 'lucide-react';
+import { ShoppingCart, Heart, Menu, X, User, LogOut, Package, ChevronDown, MapPin, LayoutGrid, Star, Truck, Sun, Moon, Award } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useLoyalty } from '../context/LoyaltyContext';
 import Button from './Button';
 import MegaMenu from './MegaMenu';
 import SmartSearch from './SmartSearch';
+import LanguageSwitcher from './LanguageSwitcher';
+import PushNotificationBell from './PushNotificationBell';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DEPARTMENTS } from '../lib/data';
 
 const Navbar = () => {
     const { currentUser, logout } = useAuth();
-    const { cart, wishlist } = useCart();
+    const { cart, wishlist, setSidebarOpen, cartCount: ctxCartCount, darkMode, toggleDarkMode } = useCart();
+    const { points } = useLoyalty();
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
 
-    const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+    const cartCount = ctxCartCount ?? cart.reduce((acc, item) => acc + item.quantity, 0);
     const wishlistCount = wishlist.length;
 
     useEffect(() => {
@@ -94,14 +98,38 @@ const Navbar = () => {
                                     )}
                                 </Link>
 
-                                <Link to="/cart" className="relative text-gray-500 hover:text-primary-500 transition-colors p-2">
+                                {/* Dark mode toggle */}
+                                <button
+                                    onClick={toggleDarkMode}
+                                    className="p-2 rounded-xl text-gray-500 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-all"
+                                    title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                                >
+                                    {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                                </button>
+
+                                {/* Language Switcher */}
+                                <LanguageSwitcher />
+
+                                {/* FreshCoins display */}
+                                <Link to="/loyalty" className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-full hover:bg-amber-100 transition-colors">
+                                    <span className="text-sm">🪙</span>
+                                    <span className="text-xs font-black text-amber-700 dark:text-amber-400">{points}</span>
+                                </Link>
+
+                                {/* Notification Bell */}
+                                <PushNotificationBell />
+
+                                <button
+                                    onClick={() => setSidebarOpen(true)}
+                                    className="relative text-gray-500 hover:text-green-600 transition-colors p-2"
+                                >
                                     <ShoppingCart className="h-6 w-6" />
                                     {cartCount > 0 && (
-                                        <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold text-white bg-primary-600 rounded-full shadow-md">
+                                        <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold text-white bg-green-600 rounded-full shadow-md">
                                             {cartCount}
                                         </span>
                                     )}
-                                </Link>
+                                </button>
 
                                 {/* User dropdown */}
                                 <div className="relative group">
@@ -124,6 +152,9 @@ const Navbar = () => {
                                         <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">📦 My Orders</Link>
                                         <Link to="/track-order" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">🚚 Track Order</Link>
                                         <Link to="/wishlist" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">❤️ Wishlist</Link>
+                                        <Link to="/loyalty" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">🪙 Loyalty & Rewards</Link>
+                                        <Link to="/subscription" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">🔄 Subscription</Link>
+                                        <Link to="/return" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">↩️ Returns</Link>
                                         <Link to="/admin" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">⚙️ Admin</Link>
                                         <button
                                             onClick={handleLogout}
@@ -143,15 +174,18 @@ const Navbar = () => {
                     </div>
 
                     {/* Mobile row */}
-                    <div className="flex md:hidden items-center space-x-3">
-                        <Link to="/cart" className="relative p-2 text-gray-600">
+                    <div className="flex md:hidden items-center space-x-2">
+                        <button onClick={toggleDarkMode} className="p-2 rounded-lg text-gray-500 hover:text-yellow-500 transition-colors">
+                            {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                        </button>
+                        <button onClick={() => setSidebarOpen(true)} className="relative p-2 text-gray-600">
                             <ShoppingCart className="h-6 w-6" />
                             {cartCount > 0 && (
-                                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold text-white bg-primary-600 rounded-full">
+                                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold text-white bg-green-600 rounded-full">
                                     {cartCount}
                                 </span>
                             )}
-                        </Link>
+                        </button>
                         <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-primary-600 focus:outline-none">
                             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                         </button>
@@ -201,6 +235,9 @@ const Navbar = () => {
                                 <>
                                     <Link to="/wishlist" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">❤️ Wishlist {wishlistCount > 0 && `(${wishlistCount})`}</Link>
                                     <Link to="/orders" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">📦 My Orders</Link>
+                                    <Link to="/loyalty" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">🪙 Loyalty ({points} coins)</Link>
+                                    <Link to="/subscription" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">🔄 Subscription</Link>
+                                    <Link to="/return" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">↩️ Returns</Link>
                                     <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">⚙️ Admin</Link>
                                     <button onClick={handleLogout} className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50">Sign out</button>
                                 </>
