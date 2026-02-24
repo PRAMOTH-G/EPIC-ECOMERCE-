@@ -86,9 +86,9 @@ const Wishlist = () => {
                                     </h3>
                                 </Link>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-lg font-bold text-green-600 dark:text-green-400">${product.price.toFixed(2)}</span>
+                                    <span className="text-lg font-bold text-green-600 dark:text-green-400">₹{product.price.toFixed(0)}</span>
                                     {product.discount > 0 && (
-                                        <span className="text-xs text-gray-400 line-through">${(product.price * (1 + product.discount / 100)).toFixed(2)}</span>
+                                        <span className="text-xs text-gray-400 line-through">₹{(product.price * (1 + product.discount / 100)).toFixed(0)}</span>
                                     )}
                                 </div>
                                 <Button

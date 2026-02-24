@@ -202,7 +202,7 @@ const Checkout = () => {
         } else if (payMethod === 'upi') {
             if (!upiId.trim() || !upiId.includes('@')) errs.upiId = 'Enter a valid UPI ID (e.g. name@upi).';
         } else if (payMethod === 'wallet') {
-            if (walletBalance < orderTotal) errs.wallet = `Insufficient wallet balance. Available: $${walletBalance.toFixed(2)}`;
+            if (walletBalance < orderTotal) errs.wallet = `Insufficient wallet balance. Available: ₹${walletBalance.toFixed(0)}`;
         }
         // COD: no extra validation
         setPayErrors(errs);
@@ -407,7 +407,7 @@ const Checkout = () => {
                                                 { id: 'card', label: '💳 Card', desc: 'Credit / Debit' },
                                                 { id: 'upi', label: '📱 UPI', desc: 'Instant pay' },
                                                 { id: 'cod', label: '💵 COD', desc: 'Pay at door' },
-                                                { id: 'wallet', label: '👛 Wallet', desc: `$${walletBalance.toFixed(0)} avail.` },
+                                                { id: 'wallet', label: '👛 Wallet', desc: `₹${walletBalance.toFixed(0)} avail.` },
                                             ].map((m) => (
                                                 <button
                                                     key={m.id}
@@ -576,7 +576,7 @@ const Checkout = () => {
                                                     <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
                                                     <div>
                                                         <p className="text-sm font-semibold text-green-800 dark:text-green-300">No online payment required</p>
-                                                        <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">Pay ${orderTotal.toFixed(2)} in cash to our delivery partner upon arrival.</p>
+                                                        <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">Pay ₹{orderTotal.toFixed(0)} in cash to our delivery partner upon arrival.</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -588,13 +588,13 @@ const Checkout = () => {
                                                 <div className="text-center py-6 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-200 dark:border-violet-700">
                                                     <Wallet className="w-10 h-10 text-violet-600 mx-auto mb-3" />
                                                     <p className="text-sm font-semibold text-violet-800 dark:text-violet-300">FreshMart Wallet</p>
-                                                    <p className="text-2xl font-bold text-violet-700 dark:text-violet-300 mt-1">${walletBalance.toFixed(2)}</p>
+                                                    <p className="text-2xl font-bold text-violet-700 dark:text-violet-300 mt-1">₹{walletBalance.toFixed(0)}</p>
                                                     <p className="text-xs text-violet-500 dark:text-violet-400">Available Balance</p>
                                                 </div>
                                                 {walletBalance >= orderTotal ? (
                                                     <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800">
                                                         <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
-                                                        <p className="text-sm text-green-700 dark:text-green-300">Sufficient balance. ${orderTotal.toFixed(2)} will be deducted from your wallet.</p>
+                                                        <p className="text-sm text-green-700 dark:text-green-300">Sufficient balance. ₹{orderTotal.toFixed(0)} will be deducted from your wallet.</p>
                                                     </div>
                                                 ) : (
                                                     <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800">
@@ -627,7 +627,7 @@ const Checkout = () => {
                                             className="flex-[2] bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-green-600/25 transition-colors"
                                         >
                                             <Lock className="w-4 h-4" />
-                                            Pay ${orderTotal.toFixed(2)} Securely
+                                            Pay ₹{orderTotal.toFixed(0)} Securely
                                         </motion.button>
                                     </div>
                                 </motion.div>
@@ -659,7 +659,7 @@ const Checkout = () => {
                                             <p className="text-xs text-gray-400">{item.category}</p>
                                         </div>
                                         <p className="text-sm font-bold text-gray-900 dark:text-white shrink-0">
-                                            ${(item.price * item.quantity).toFixed(2)}
+                                            ₹{(item.price * item.quantity).toFixed(0)}
                                         </p>
                                     </div>
                                 ))}
@@ -669,27 +669,27 @@ const Checkout = () => {
                             <div className="border-t border-gray-100 dark:border-gray-700 pt-4 space-y-2.5 text-sm">
                                 <div className="flex justify-between text-gray-500 dark:text-gray-400">
                                     <span>Subtotal</span>
-                                    <span className="font-medium text-gray-900 dark:text-white">${cartTotal.toFixed(2)}</span>
+                                    <span className="font-medium text-gray-900 dark:text-white">₹{cartTotal.toFixed(0)}</span>
                                 </div>
                                 {promoDiscount > 0 && (
                                     <div className="flex justify-between text-green-600 dark:text-green-400">
                                         <span>Discount ({promoCode?.code})</span>
-                                        <span className="font-medium">-${promoDiscount.toFixed(2)}</span>
+                                        <span className="font-medium">-₹{promoDiscount.toFixed(0)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between text-gray-500 dark:text-gray-400">
                                     <span>Delivery</span>
                                     <span className={`font-medium ${shippingCost === 0 ? 'text-green-600' : 'text-gray-900 dark:text-white'}`}>
-                                        {shippingCost === 0 ? '🎉 Free' : `$${shippingCost.toFixed(2)}`}
+                                        {shippingCost === 0 ? '🎉 Free' : `₹${shippingCost.toFixed(0)}`}
                                     </span>
                                 </div>
                                 <div className="flex justify-between text-gray-500 dark:text-gray-400">
                                     <span>Tax (8%)</span>
-                                    <span className="font-medium text-gray-900 dark:text-white">${tax.toFixed(2)}</span>
+                                    <span className="font-medium text-gray-900 dark:text-white">₹{tax.toFixed(0)}</span>
                                 </div>
                                 <div className="border-t border-gray-100 dark:border-gray-700 pt-3 flex justify-between items-center">
                                     <span className="text-base font-bold text-gray-900 dark:text-white">Total</span>
-                                    <span className="text-xl font-bold text-green-600">${orderTotal.toFixed(2)}</span>
+                                    <span className="text-xl font-bold text-green-600">₹{orderTotal.toFixed(0)}</span>
                                 </div>
                             </div>
 

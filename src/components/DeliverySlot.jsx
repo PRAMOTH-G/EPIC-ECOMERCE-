@@ -19,8 +19,8 @@ const DeliverySlot = ({ selected, onSelect }) => {
                             whileTap={{ scale: 0.97 }}
                             onClick={() => onSelect(slot)}
                             className={`relative flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all duration-200 ${isSelected
-                                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-md shadow-green-500/20'
-                                    : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-green-300 dark:hover:border-green-700'
+                                ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-md shadow-green-500/20'
+                                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-green-300 dark:hover:border-green-700'
                                 }`}
                         >
                             <span className="text-2xl">{slot.icon}</span>
@@ -33,7 +33,7 @@ const DeliverySlot = ({ selected, onSelect }) => {
                             <div className="flex-none">
                                 {slot.price > 0 ? (
                                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isSelected ? 'bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-200' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>
-                                        +${slot.price.toFixed(2)}
+                                        +₹{slot.price.toFixed(0)}
                                     </span>
                                 ) : (
                                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isSelected ? 'bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-300' : 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-500'}`}>

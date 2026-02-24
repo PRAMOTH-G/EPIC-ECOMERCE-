@@ -83,15 +83,15 @@ const Orders = () => {
                                             <img src={item.image} alt={item.title} className="w-12 h-12 rounded-xl object-cover" />
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-1">{item.title}</p>
-                                                <p className="text-xs text-gray-400">Qty: {item.quantity} × ${item.price.toFixed(2)}</p>
+                                                <p className="text-xs text-gray-400">Qty: {item.quantity} × ₹{item.price.toFixed(0)}</p>
                                             </div>
-                                            <span className="text-sm font-bold text-gray-700 dark:text-gray-300">${(item.price * item.quantity).toFixed(2)}</span>
+                                            <span className="text-sm font-bold text-gray-700 dark:text-gray-300">₹{(item.price * item.quantity).toFixed(0)}</span>
                                         </div>
                                     ))}
                                 </div>
 
                                 <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800">
-                                    <span className="text-base font-bold text-gray-900 dark:text-white">Total: ${order.total?.toFixed(2) || '—'}</span>
+                                    <span className="text-base font-bold text-gray-900 dark:text-white">Total: ₹{order.orderTotal?.toFixed(0) || '—'}</span>
                                     <Link to="/track-order">
                                         <Button variant="outline" size="sm" className="rounded-xl flex items-center gap-2 text-xs">
                                             <Truck className="w-3.5 h-3.5" /> Track Order

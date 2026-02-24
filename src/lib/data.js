@@ -97,27 +97,27 @@ const PRODUCTS_BASE = [
         id: 1, title: "Organic Red Apples (1 kg)", price: 249, discount: 10, rating: 4.8, reviews: 214, stock: 80, unit: "kg",
         category: "Fruits & Vegetables",
         description: "Freshly harvested, crisp organic red apples. Rich in fibre, vitamins and natural antioxidants.",
-        image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=600&auto=format&fit=crop&q=80",
         isOrganic: true, isFeatured: true,
     },
     {
         id: 2, title: "Ripe Bananas (Bunch ~6 pcs)", price: 49, discount: 0, rating: 4.7, reviews: 186, stock: 120, unit: "bunch",
         category: "Fruits & Vegetables",
         description: "Sweet and energising ripe bananas, sourced directly from tropical farms.",
-        image: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1603833665858-e61d17a86224?w=600&auto=format&fit=crop&q=80",
     },
     {
         id: 3, title: "Juicy Alphonso Mangoes (Pack of 4)", price: 399, discount: 15, rating: 4.9, reviews: 322, stock: 50, unit: "pack",
         category: "Fruits & Vegetables",
         description: "Hand-picked, sun-ripened Alphonso mangoes bursting with tropical sweetness.",
-        image: "https://images.unsplash.com/photo-1553279768-865429fa0078?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1591073113125-e46713c829ed?w=600&auto=format&fit=crop&q=80",
         isFeatured: true,
     },
     {
         id: 4, title: "Fresh Strawberries (250g)", price: 199, discount: 0, rating: 4.8, reviews: 198, stock: 60, unit: "250g",
         category: "Fruits & Vegetables",
         description: "Plump, garden-fresh strawberries with a perfect balance of sweetness and tartness.",
-        image: "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1543528176-61b239494933?w=600&auto=format&fit=crop&q=80",
     },
     {
         id: 5, title: "Baby Spinach Leaves (200g)", price: 89, discount: 0, rating: 4.6, reviews: 145, stock: 90, unit: "200g",
@@ -213,20 +213,20 @@ const PRODUCTS_BASE = [
         id: 18, title: "Ragi (Finger Millet) Flour (1 kg)", price: 179, discount: 0, rating: 4.6, reviews: 112, stock: 80, unit: "kg",
         category: "Flour Varieties",
         description: "Calcium-rich ragi flour ideal for rotis, porridge and dosas.",
-        image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1574323347407-f5e1ad6962b3?w=600&auto=format&fit=crop&q=80",
         isOrganic: true,
     },
     {
         id: 19, title: "Chickpea (Besan) Flour (1 kg)", price: 129, discount: 10, rating: 4.8, reviews: 195, stock: 100, unit: "kg",
         category: "Flour Varieties",
         description: "Fine-ground gram flour used in pakoras, kadhi, ladoo and gluten-free baking.",
-        image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1618329340733-4f6b37e9f9e4?w=600&auto=format&fit=crop&q=80",
     },
     {
         id: 20, title: "Maida All-Purpose Flour (1 kg)", price: 59, discount: 0, rating: 4.5, reviews: 89, stock: 120, unit: "kg",
         category: "Flour Varieties",
         description: "Finely milled refined flour for baking cakes, pastries and naan.",
-        image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1621496832759-a0d2e3ab0a98?w=600&auto=format&fit=crop&q=80",
     },
 
     // ── Meat Varieties ───────────────────────────────────────
@@ -268,7 +268,7 @@ const PRODUCTS_BASE = [
         id: 26, title: "Amul Butter (500g)", price: 249, discount: 0, rating: 4.8, reviews: 420, stock: 100, unit: "500g",
         category: "Dairy Products",
         description: "Creamery butter with a rich, slightly salted flavour.",
-        image: "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=600&auto=format&fit=crop&q=80",
     },
     {
         id: 27, title: "Homestyle Paneer (200g)", price: 99, discount: 10, rating: 4.7, reviews: 315, stock: 80, unit: "200g",
@@ -384,7 +384,7 @@ const PRODUCTS_BASE = [
         id: 43, title: "Tata Tea Premium (500g)", price: 299, discount: 10, rating: 4.8, reviews: 412, stock: 100, unit: "500g",
         category: "Beverages",
         description: "Rich, full-bodied CTC black tea from Assam gardens.",
-        image: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=600&auto=format&fit=crop&q=80",
         isSubscribable: true,
     },
     {
@@ -400,14 +400,14 @@ const PRODUCTS_BASE = [
         id: 45, title: "Vim Dishwash Liquid (750ml)", price: 129, discount: 0, rating: 4.7, reviews: 280, stock: 200, unit: "750ml",
         category: "Household Essentials",
         description: "Powerful dishwash liquid with lime that cuts through grease.",
-        image: "https://images.unsplash.com/photo-1583947581924-860bda6a26df?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1585842378054-ee2e52f94ba2?w=600&auto=format&fit=crop&q=80",
         isFeatured: true,
     },
     {
         id: 46, title: "Surf Excel Detergent Powder (2 kg)", price: 349, discount: 10, rating: 4.8, reviews: 510, stock: 150, unit: "2 kg",
         category: "Household Essentials",
         description: "Tough stain removal detergent with fresh fragrance.",
-        image: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&auto=format&fit=crop&q=80",
     },
     {
         id: 47, title: "Colin Glass Cleaner Spray (500ml)", price: 119, discount: 0, rating: 4.5, reviews: 145, stock: 120, unit: "500ml",
@@ -427,7 +427,7 @@ const PRODUCTS_BASE = [
         id: 49, title: "Sourdough Artisan Bread", price: 199, discount: 0, rating: 4.9, reviews: 504, stock: 30, unit: "loaf",
         category: "Bakery Products",
         description: "Slow-fermented sourdough with crispy crust and soft, chewy crumb.",
-        image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1586444248902-2f64eddc13df?w=600&auto=format&fit=crop&q=80",
         isFeatured: true,
     },
     {
@@ -455,7 +455,7 @@ const PRODUCTS_BASE = [
         id: 53, title: "Chia Seeds (250g)", price: 299, discount: 0, rating: 4.8, reviews: 312, stock: 80, unit: "250g",
         category: "Organic & Healthy Products",
         description: "Certified organic chia seeds packed with Omega-3, fibre and protein.",
-        image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1514733670139-4d237900d7b8?w=600&auto=format&fit=crop&q=80",
         isOrganic: true, isFeatured: true,
     },
     {
@@ -469,7 +469,7 @@ const PRODUCTS_BASE = [
         id: 55, title: "Quinoa (500g)", price: 349, discount: 10, rating: 4.7, reviews: 198, stock: 70, unit: "500g",
         category: "Organic & Healthy Products",
         description: "Protein-rich superfood with all 9 essential amino acids.",
-        image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1598449426314-8b02525e8733?w=600&auto=format&fit=crop&q=80",
         isOrganic: true,
     },
     {
@@ -498,13 +498,13 @@ const PRODUCTS_BASE = [
         id: 59, title: "Nestum Baby Cereal (300g)", price: 279, discount: 0, rating: 4.7, reviews: 234, stock: 65, unit: "300g",
         category: "Baby Care Products",
         description: "Nutritious multi-grain baby cereal fortified with iron and vitamins.",
-        image: "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=600&auto=format&fit=crop&q=80",
     },
     {
         id: 60, title: "Himalaya Baby Lotion (400ml)", price: 169, discount: 5, rating: 4.8, reviews: 312, stock: 90, unit: "400ml",
         category: "Baby Care Products",
         description: "Mild, soothing baby lotion with natural olive oil.",
-        image: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=600&auto=format&fit=crop&q=80",
+        image: "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=600&auto=format&fit=crop&q=80",
     },
 
     // ── Pet Care Products ────────────────────────────────────

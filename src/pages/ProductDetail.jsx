@@ -93,11 +93,11 @@ const ProductDetail = () => {
                     </div>
 
                     <div className="flex items-end space-x-4">
-                        <span className="text-4xl font-bold text-primary-600">${product.price.toFixed(2)}</span>
+                        <span className="text-4xl font-bold text-primary-600">₹{product.price.toFixed(0)}</span>
                         {product.unit && <span className="text-lg text-gray-400 mb-1">/ {product.unit}</span>}
                         {product.discount > 0 && (
                             <div className="flex flex-col mb-1">
-                                <span className="text-lg text-gray-400 line-through">${(product.price * (1 + product.discount / 100)).toFixed(2)}</span>
+                                <span className="text-lg text-gray-400 line-through">₹{(product.price * (1 + product.discount / 100)).toFixed(0)}</span>
                                 <span className="text-red-500 font-bold text-sm">Save {product.discount}%</span>
                             </div>
                         )}

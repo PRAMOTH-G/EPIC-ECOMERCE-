@@ -40,11 +40,11 @@ const ComboDeal = ({ deal }) => {
 
                 <div className="flex items-baseline gap-3">
                     <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                        ${deal.comboPrice.toFixed(2)}
+                        ₹{deal.comboPrice.toFixed(0)}
                     </span>
-                    <span className="text-sm text-gray-400 line-through">${deal.originalPrice.toFixed(2)}</span>
+                    <span className="text-sm text-gray-400 line-through">₹{deal.originalPrice.toFixed(0)}</span>
                     <span className="text-xs bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 font-bold px-2 py-0.5 rounded-full">
-                        Save ${deal.savings.toFixed(2)}
+                        Save ₹{deal.savings.toFixed(0)}
                     </span>
                 </div>
 

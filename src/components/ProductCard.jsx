@@ -118,7 +118,7 @@ const ProductCard = ({ product, compact = false }) => {
                 </motion.button>
 
                 {/* Image */}
-                <Link to={`/product/${product.id}`} className="block relative overflow-hidden bg-gray-50 dark:bg-gray-800/50" style={{ aspectRatio: '1/1' }}>
+                <Link to={`/product/${product.id}`} className="block relative overflow-hidden bg-white dark:bg-gray-800/60" style={{ aspectRatio: '1/1' }}>
                     {/* Hover overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400 z-10" />
 
@@ -141,7 +141,7 @@ const ProductCard = ({ product, compact = false }) => {
                         src={imgError ? fallback : product.image}
                         alt={product.title}
                         onError={() => setImgError(true)}
-                        className="w-full h-full object-cover transform group-hover:scale-[1.07] transition-transform duration-600 ease-out"
+                        className="w-full h-full object-contain p-3 transform group-hover:scale-[1.07] transition-transform duration-600 ease-out"
                     />
 
                     {/* Out of stock overlay */}
@@ -193,7 +193,7 @@ const ProductCard = ({ product, compact = false }) => {
                     </div>
 
                     {/* Price + Add-to-cart row — properly aligned */}
-                    <div className="flex items-center justify-between pt-2 mt-auto gap-2">
+                    <div className="flex items-center justify-between pt-2 mt-auto gap-2 min-h-[44px]">
 
                         {/* Price pill — clean hover-lift button style */}
                         <motion.div
@@ -217,83 +217,85 @@ const ProductCard = ({ product, compact = false }) => {
                             )}
                         </motion.div>
 
-                        {/* Cart button */}
-                        <AnimatePresence mode="wait">
-                            {cartItem ? (
-                                <motion.div
-                                    key="qty"
-                                    initial={{ scale: 0.8, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0.8, opacity: 0 }}
-                                    className="flex items-center gap-1 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl p-1"
-                                >
-                                    <button
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            if (cartItem.quantity <= 1) {
-                                                removeFromCart(product.id);
-                                            } else {
-                                                updateQuantity(product.id, cartItem.quantity - 1);
-                                            }
-                                        }}
-                                        className="w-7 h-7 rounded-lg bg-white dark:bg-dark-card text-green-600 flex items-center justify-center shadow-sm hover:bg-green-600 hover:text-white transition-all font-bold"
+                        {/* Cart button — fixed-height wrapper keeps it level with the price pill */}
+                        <div className="flex items-center self-center">
+                            <AnimatePresence mode="wait">
+                                {cartItem ? (
+                                    <motion.div
+                                        key="qty"
+                                        initial={{ scale: 0.8, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        exit={{ scale: 0.8, opacity: 0 }}
+                                        className="flex items-center gap-1 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl p-1"
                                     >
-                                        <Minus className="w-3 h-3" />
-                                    </button>
-                                    <span className="w-6 text-center text-sm font-bold text-green-700 dark:text-green-300">
-                                        {cartItem.quantity}
-                                    </span>
-                                    <button
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                if (cartItem.quantity <= 1) {
+                                                    removeFromCart(product.id);
+                                                } else {
+                                                    updateQuantity(product.id, cartItem.quantity - 1);
+                                                }
+                                            }}
+                                            className="w-7 h-7 rounded-lg bg-white dark:bg-dark-card text-green-600 flex items-center justify-center shadow-sm hover:bg-green-600 hover:text-white transition-all font-bold"
+                                        >
+                                            <Minus className="w-3 h-3" />
+                                        </button>
+                                        <span className="w-6 text-center text-sm font-bold text-green-700 dark:text-green-300">
+                                            {cartItem.quantity}
+                                        </span>
+                                        <button
+                                            onClick={handleAddToCart}
+                                            className="w-7 h-7 rounded-lg bg-green-600 text-white flex items-center justify-center shadow-sm hover:bg-green-700 transition-all"
+                                        >
+                                            <Plus className="w-3 h-3" />
+                                        </button>
+                                    </motion.div>
+                                ) : (
+                                    <motion.button
+                                        key="add"
+                                        initial={{ scale: 0.8, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        exit={{ scale: 0.8, opacity: 0 }}
+                                        whileHover={{ scale: 1.08, y: -2 }}
+                                        whileTap={{ scale: 0.93 }}
                                         onClick={handleAddToCart}
-                                        className="w-7 h-7 rounded-lg bg-green-600 text-white flex items-center justify-center shadow-sm hover:bg-green-700 transition-all"
+                                        disabled={product.stock === 0}
+                                        className={`h-9 flex items-center gap-1.5 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-colors duration-200 btn-liquid overflow-hidden whitespace-nowrap ${product.stock === 0
+                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                            : isAdding
+                                                ? 'bg-green-600 text-white shadow-lg shadow-green-500/40'
+                                                : 'bg-green-600 hover:bg-green-700 text-white shadow-md shadow-green-500/30'
+                                            }`}
                                     >
-                                        <Plus className="w-3 h-3" />
-                                    </button>
-                                </motion.div>
-                            ) : (
-                                <motion.button
-                                    key="add"
-                                    initial={{ scale: 0.8, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0.8, opacity: 0 }}
-                                    whileHover={{ scale: 1.08, y: -2 }}
-                                    whileTap={{ scale: 0.93 }}
-                                    onClick={handleAddToCart}
-                                    disabled={product.stock === 0}
-                                    className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors duration-200 btn-liquid overflow-hidden ${product.stock === 0
-                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                        : isAdding
-                                            ? 'bg-green-600 text-white shadow-lg shadow-green-500/40'
-                                            : 'bg-green-600 hover:bg-green-700 text-white shadow-md shadow-green-500/30'
-                                        }`}
-                                >
-                                    <AnimatePresence mode="wait">
-                                        {isAdding ? (
-                                            <motion.span
-                                                key="added"
-                                                initial={{ opacity: 0, y: 8 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -8 }}
-                                                className="flex items-center gap-1"
-                                            >
-                                                <Zap className="w-3.5 h-3.5" /> Added!
-                                            </motion.span>
-                                        ) : (
-                                            <motion.span
-                                                key="add"
-                                                initial={{ opacity: 0, y: 8 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -8 }}
-                                                className="flex items-center gap-1"
-                                            >
-                                                <ShoppingCart className="w-3.5 h-3.5" />
-                                                <span>Add</span>
-                                            </motion.span>
-                                        )}
-                                    </AnimatePresence>
-                                </motion.button>
-                            )}
-                        </AnimatePresence>
+                                        <AnimatePresence mode="wait">
+                                            {isAdding ? (
+                                                <motion.span
+                                                    key="added"
+                                                    initial={{ opacity: 0, y: 8 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -8 }}
+                                                    className="flex items-center gap-1"
+                                                >
+                                                    <Zap className="w-3.5 h-3.5" /> Added!
+                                                </motion.span>
+                                            ) : (
+                                                <motion.span
+                                                    key="add"
+                                                    initial={{ opacity: 0, y: 8 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -8 }}
+                                                    className="flex items-center gap-1"
+                                                >
+                                                    <ShoppingCart className="w-3.5 h-3.5" />
+                                                    <span>Add</span>
+                                                </motion.span>
+                                            )}
+                                        </AnimatePresence>
+                                    </motion.button>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
                 </div>
             </motion.div>
